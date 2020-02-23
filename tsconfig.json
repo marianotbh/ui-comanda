@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"outDir": "build",
+		"strict": false,
+		"module": "commonjs",
+		"target": "es6",
+		"sourceMap": true,
+		"noImplicitUseStrict": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"allowUmdGlobalAccess": true
+	},
+	"exclude": ["node_modules", "public", "build"]
+}
