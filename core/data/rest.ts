@@ -27,12 +27,13 @@ export class RestProvider implements IProvider {
 		this.client = client;
 	}
 
-	get<T>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
+	async get<T>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
-		return this.client<T>(url, options).then(({ json }) => json);
+		const { json } = await this.client<T>(url, options);
+		return json;
 	}
 
-	list<T = any>(
+	async list<T = any>(
 		resource: string,
 		listOptions: ListOptions = {},
 		options: IOptions = {}
@@ -49,51 +50,53 @@ export class RestProvider implements IProvider {
 		});
 
 		const url = `${this.endpoint}/${resource}` + (query ? `?${query}` : "");
-
-		return this.client<Array<T>>(url, options).then(({ headers, json }) => {
-			return {
-				data: { ...json },
-				total: headers.has("content-range")
-					? parseInt(
-							headers
-								.get("content-range")
-								.split("/")
-								.pop(),
-							10
-					  )
-					: 0
-			};
-		});
+		const { headers, json } = await this.client<Array<T>>(url, options);
+		return {
+			data: { ...json },
+			total: headers.has("content-range")
+				? parseInt(
+						headers
+							.get("x-total-count")
+							.split("/")
+							.pop(),
+						10
+				  )
+				: 0
+		};
 	}
 
-	post<T>(resource: string, data: object, options: IOptions = {}): Promise<T> {
+	async post<T>(resource: string, data: object, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}`;
-		return this.client<T>(url, {
+		const { json } = await this.client<T>(url, {
 			method: "POST",
 			body: JSON.stringify(data)
-		}).then(({ json }) => ({ ...json }));
+		});
+		return { ...json };
 	}
 
-	put<T>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
+	async put<T>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
-		return this.client<T>(url, {
+		const { json } = await this.client<T>(url, {
 			method: "PUT",
 			body: JSON.stringify(data)
-		}).then(({ json }) => ({ ...json }));
+		});
+		return { ...json };
 	}
 
-	patch<T>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
+	async patch<T>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
-		return this.client<T>(url, {
+		const { json } = await this.client<T>(url, {
 			method: "PATCH",
 			body: JSON.stringify(data)
-		}).then(({ json }) => ({ ...json }));
+		});
+		return { ...json };
 	}
 
-	delete<T>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
+	async delete<T>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
-		return this.client<T>(url, {
+		const { json } = await this.client<T>(url, {
 			method: "DELETE"
-		}).then(({ json }) => ({ ...json }));
+		});
+		return { ...json };
 	}
 }

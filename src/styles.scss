@@ -1,0 +1,21 @@
+$theme-colors: (
+	"primary": #db7093
+);
+
+$fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
+@import "~@fortawesome/fontawesome-free/scss/fontawesome";
+@import "~@fortawesome/fontawesome-free/scss/brands";
+@import "~@fortawesome/fontawesome-free/scss/solid";
+@import "~@fortawesome/fontawesome-free/scss/regular";
+@import "~bootstrap/scss/bootstrap";
+@import "~typeface-nunito/index.css";
+
+body {
+	margin: 0;
+	padding: 0;
+	min-width: 100vw;
+	min-height: 100vh;
+	font-family: "Nunito" !important;
+	position: relative;
+}
+

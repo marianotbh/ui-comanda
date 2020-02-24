@@ -1,0 +1,23 @@
+.btn {
+	text-transform: uppercase;
+	font-weight: 600;
+	font-size: 0.75rem;
+	padding: 0.6rem 0.75rem 0.4rem;
+	letter-spacing: 0.1rem;
+}
+
+.modal {
+	position: relative;
+
+	.modal-content {
+		border: none;
+	}
+
+	.close {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		z-index: 999;
+		text-shadow: none;
+	}
+}

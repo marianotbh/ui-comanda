@@ -1,12 +1,16 @@
-import { RestProvider } from "core/data";
-import { url } from "../api";
+import { RestProvider } from "core";
+import { url } from "./api";
 
-const httpClient = <T>(url: string, { method = "GET", body: data = "", ...rest } = {}) => {
+const httpClient = <T>(url: string, { method = "GET", body = "", ...rest } = {}) => {
 	return new Promise<{ json: T; headers: Headers }>((resolve, reject) => {
 		$.ajax({
 			url,
 			method,
-			data,
+			...(body
+				? {
+						data: typeof body === "string" ? JSON.parse(body) : body
+				  }
+				: null),
 			beforeSend: req => {
 				if ("token" in localStorage) {
 					req.setRequestHeader("Authorization", `Bearer ${localStorage.token}`);
@@ -23,7 +27,7 @@ const httpClient = <T>(url: string, { method = "GET", body: data = "", ...rest }
 			})
 			.fail((jqXHR: JQuery.jqXHR, status: string) => {
 				console.info(`[${method}] ${url} - ${status.toUpperCase()}`, jqXHR.responseJSON);
-				reject(...jqXHR.responseJSON);
+				reject({ error: jqXHR.responseJSON ?? jqXHR.responseText });
 			});
 	});
 };

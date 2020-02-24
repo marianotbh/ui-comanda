@@ -1,7 +1,9 @@
-import "./jquery";
-import api from "./provider";
-import { User } from "./classes/user";
+import "./setup";
+import "./styles.scss";
+import router from "./routing";
+import { Session } from "./session";
 
 $(document).ready(async () => {
-	const { user } = await api.get<{ user: User }>("users", 1);
+	await Session.begin();
+	await router.start();
 });
