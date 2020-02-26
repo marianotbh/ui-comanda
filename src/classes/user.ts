@@ -5,7 +5,8 @@ export class User {
 	lastName: string;
 	email: string;
 	role: number;
-	createdAt: Date;
-	updatedAt: Date;
-	removedAt: Date;
+	createdAt: string;
+	updatedAt: string;
+	removedAt: string;
+	lastLoginAt: string;
 }

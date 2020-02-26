@@ -47,3 +47,22 @@ export const withListener = (
 	el.addEventListener(type, listener, options);
 	return el;
 };
+
+export const setValidity = (el: HTMLInputElement | HTMLSelectElement, message: string | true) => {
+	if (message !== true) {
+		el.setCustomValidity(message);
+		if (el.nextElementSibling?.classList.contains("invalid-feedback")) {
+			el.nextElementSibling.textContent = message;
+		} else {
+			el.parentElement.insertBefore(
+				withHTML(message)(withClass("invalid-feedback")(document.createElement("div"))),
+				el.nextElementSibling
+			);
+		}
+	} else {
+		el.setCustomValidity("");
+		if (el.nextElementSibling?.classList.contains("invalid-feedback")) {
+			el.parentElement.removeChild(el.nextElementSibling);
+		}
+	}
+};

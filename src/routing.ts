@@ -1,25 +1,65 @@
 import { Router, Redirect } from "core";
-import { HomeController, LoginController } from "./views";
-import { AuthResolver } from "./resolvers";
+import {
+	DashboardController,
+	LoginController,
+	TablesController,
+	OrdersController,
+	UsersController,
+	ProfileController,
+	PermissionsController,
+	SettingsController
+} from "./views";
+import { AuthResolver, NavigationResolver } from "./resolvers";
+import { ActionsResolver } from "./resolvers/actions";
+import { Session } from "./session";
 
-const main = document.querySelector<HTMLElement>("main#root");
+const main = document.querySelector<HTMLElement>("#root");
 
 const router = new Router(main);
 
 const from = (name: string) => require(`./views/${name}.html`);
 
+router.use(AuthResolver);
+router.use(new ActionsResolver(["login", "profile", "settings", "403", "404"], false));
+router.use(NavigationResolver);
+
 router
-	.add("home", {
+	.add("dashboard", {
 		path: "/",
-		controller: HomeController,
-		template: from("home"),
-		resolver: [AuthResolver]
+		controller: DashboardController,
+		template: from("dashboard")
 	})
 	.add("login", {
 		path: "/login",
 		controller: LoginController,
 		template: from("login")
 	})
+	.add("profile", {
+		path: "/profile",
+		controller: ProfileController,
+		template: from("profile")
+	})
+	.add("settings", {
+		path: "/settings",
+		controller: SettingsController,
+		template: from("settings")
+	})
+	.add("users", {
+		path: "/users",
+		controller: UsersController,
+		template: from("users")
+	})
+	.add("orders", {
+		path: "/orders",
+		controller: OrdersController,
+		template: from("orders")
+	})
+	.add("tables", {
+		path: "/tables",
+		controller: TablesController,
+		template: from("tables")
+	})
+
 	.add("403", {
 		path: "/403",
 		template: from("not-authorized")
@@ -28,6 +68,32 @@ router
 		path: "/404",
 		template: from("not-found")
 	});
+
+if (Session.isAdmin() || Session.isManager()) {
+	router
+		.add("reviews", {
+			path: "/reviews",
+			controller: PermissionsController,
+			template: from("reviews")
+		})
+		.add("permissions", {
+			path: "/permissions",
+			controller: PermissionsController,
+			template: from("permissions")
+		});
+}
+
+router.onChange = () => {
+	return new Promise(resolve => {
+		$(main).fadeOut(200, () => resolve());
+	});
+};
+
+router.onReady = () => {
+	return new Promise(resolve => {
+		$(main).fadeIn(300, () => resolve());
+	});
+};
 
 router.onBypassed = () => {
 	return Redirect.to("404");

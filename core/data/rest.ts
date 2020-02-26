@@ -50,9 +50,9 @@ export class RestProvider implements IProvider {
 		});
 
 		const url = `${this.endpoint}/${resource}` + (query ? `?${query}` : "");
-		const { headers, json } = await this.client<Array<T>>(url, options);
+		const { headers, json: data } = await this.client<Array<T>>(url, options);
 		return {
-			data: { ...json },
+			data,
 			total: headers.has("content-range")
 				? parseInt(
 						headers

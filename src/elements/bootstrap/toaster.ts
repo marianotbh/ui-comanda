@@ -1,7 +1,11 @@
 import { createIcon } from "./icon";
 import { withClass, withStyle, withAttr, withHTML } from "./utils";
 
-export const toaster = (message: string, style: Style, delay: number = 2500): Promise<void> => {
+export const toaster = (
+	message: string,
+	style: Style = "primary",
+	delay: number = 2500
+): Promise<void> => {
 	return new Promise(resolve => {
 		$(
 			withHTML(`
@@ -13,7 +17,7 @@ export const toaster = (message: string, style: Style, delay: number = 2500): Pr
 				</div>
 			`)(
 				withAttr({
-					role: "alert",
+					"role": "alert",
 					"aria-live": "assertive",
 					"aria-atomic": "true"
 				})(
@@ -22,7 +26,8 @@ export const toaster = (message: string, style: Style, delay: number = 2500): Pr
 						bottom: "50px",
 						left: "50%",
 						color: "white",
-						fontSize: "1rem"
+						fontSize: "1rem",
+						transform: "translateX(-50%)"
 					})(withClass(`toast bg-${style}`)(document.createElement("div")))
 				)
 			)

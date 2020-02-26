@@ -1,11 +1,14 @@
 import { Controller } from "core";
-import api from "../provider";
-import { toaster } from "src/elements/bootstrap";
+import { toaster, setValidity } from "src/elements/bootstrap";
 import { block } from "core/utils/block";
 import { Session } from "src/session";
+import api from "../provider";
 
 export class LoginController extends Controller {
-	private form;
+	private form: HTMLFormElement = null;
+	private username: HTMLInputElement = null;
+	private password: HTMLInputElement = null;
+	private remember: HTMLInputElement = null;
 
 	constructor() {
 		super();
@@ -13,43 +16,52 @@ export class LoginController extends Controller {
 	}
 
 	onInit() {
-		const form = document.querySelector<HTMLFormElement>("#login");
-		form.addEventListener("submit", this.login);
-		this.form = form;
+		this.form = document.querySelector<HTMLFormElement>("#login");
+		this.form.addEventListener("submit", this.login, false);
+		this.username = document.querySelector<HTMLInputElement>("#username");
+		this.password = document.querySelector<HTMLInputElement>("#password");
+		this.remember = document.querySelector<HTMLInputElement>("#remember");
 	}
 
 	private async login(ev: Event) {
 		ev.preventDefault();
+		ev.stopPropagation();
 
-		const username = document.querySelector<HTMLInputElement>("#username").value;
-		const password = document.querySelector<HTMLInputElement>("#password").value;
-		const remember = document.querySelector<HTMLInputElement>("#remember").checked;
+		const { username, password, remember } = this;
 
-		const ref = block(this.form);
+		if (!username.value) setValidity(username, "This field is required");
+		else setValidity(username, true);
+		if (!password.value) setValidity(password, "This field is required");
+		else setValidity(password, true);
 
-		setTimeout(() => {
+		this.form.classList.replace("needs-validation", "was-validated");
+
+		if (this.form.checkValidity()) {
+			const ref = block(this.form);
 			api
-				.post("login", {
-					username,
-					password,
-					remember
+				.post<{ token: string }>("auth/login", {
+					username: username.value,
+					password: password.value,
+					remember: remember.checked
 				})
 				.then(async ({ token }) => {
-					await Session.new(token);
-					await toaster("Welcome back, User", "success");
+					Session.new(token);
+					const { firstName, lastName } = Session.get().payload;
+					await toaster(`Welcome back, ${firstName} ${lastName}`, "success");
 					location.hash = "/";
 				})
-				.catch(async ({ error }) => {
-					await toaster(error, "danger");
+				.catch(async ({ message }: { message: string }) => {
+					if (message.toLowerCase().includes("username")) setValidity(username, message);
+					else if (message.toLowerCase().includes("password")) setValidity(password, message);
+					else toaster(message, "danger");
 				})
 				.finally(() => {
 					ref.unblock();
 				});
-		}, 1000);
+		}
 	}
 
 	onDispose() {
-		const form = document.querySelector<HTMLFormElement>("#login");
-		form.removeEventListener("submit", this.login);
+		this.form.removeEventListener("submit", this.login, false);
 	}
 }

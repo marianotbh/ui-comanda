@@ -1,12 +1,22 @@
 import { Resolver, Redirect } from "core";
 import { Session } from "src/session";
 
-export class AuthResolver implements Resolver {
+const cleanHash = () => {
+	const hash = location.hash.replace(/[\#]/g, "");
+	return hash.charAt(0) === "/" ? hash.substr(1) : hash;
+};
+
+export class AuthResolver extends Resolver {
 	async resolve(): Promise<object> {
-		if (Session.online) {
-			return Promise.resolve({ user: (await Session.get()).payload });
+		const current = cleanHash();
+		if (current != "login") {
+			if (Session.online) {
+				return Promise.resolve({ user: Session.get().payload });
+			} else {
+				return Redirect.to("login");
+			}
 		} else {
-			return Redirect.to("/login");
+			return Promise.resolve({});
 		}
 	}
 }

@@ -15,10 +15,12 @@ export class Router {
 	private root: HTMLElement;
 	private routes: Map<string, Route>;
 	private current: Controller;
+	private resolvers: Set<Resolver>;
 
 	constructor(root: HTMLElement = document.body) {
 		this.root = root;
 		this.routes = new Map<string, Route>();
+		this.resolvers = new Set<Resolver>();
 		this.setRoute = this.setRoute.bind(this);
 		this.handle = this.handle.bind(this);
 	}
@@ -27,7 +29,6 @@ export class Router {
 		const { handle } = this;
 
 		window.addEventListener("hashchange", async () => {
-			debugger;
 			await handle(this.setRoute);
 		});
 
@@ -36,6 +37,10 @@ export class Router {
 
 	private async setRoute() {
 		await this.onChange();
+
+		if (this.resolvers.size > 0) {
+			await Promise.all([...this.resolvers].map(r => r.resolve()));
+		}
 
 		const { controller, template } = await this.parseHash();
 
@@ -79,6 +84,10 @@ export class Router {
 		this.routes.set(name, route);
 
 		return this;
+	}
+
+	use(resolver: Resolver | Type<Resolver>) {
+		this.resolvers.add(resolver instanceof Resolver ? resolver : new resolver());
 	}
 
 	private bypassed() {

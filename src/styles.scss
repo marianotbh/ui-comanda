@@ -9,13 +9,49 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 @import "~@fortawesome/fontawesome-free/scss/regular";
 @import "~bootstrap/scss/bootstrap";
 @import "~typeface-nunito/index.css";
+@import "~typeface-lobster/index.css";
 
 body {
 	margin: 0;
 	padding: 0;
 	min-width: 100vw;
 	min-height: 100vh;
-	font-family: "Nunito" !important;
+	display: block;
+	font-family: "Nunito", "sans-serif" !important;
 	position: relative;
+	transition: all 0.5s ease-in-out;
 }
 
+.navbar-brand {
+	font-weight: bolder;
+}
+
+.panel {
+	h1 {
+		font-weight: 600;
+		border-bottom: 0.3rem solid var(--primary);
+		margin-bottom: 1.2rem;
+	}
+}
+
+#sidebar {
+	width: 250px;
+	padding-right: 2rem;
+
+	.sidebar-link {
+		width: 100%;
+		display: block;
+		padding: 0.5rem 0rem;
+		text-decoration: none;
+		transition: all 0.25s ease-in;
+		border-radius: 0.35rem;
+
+		&.active {
+			color: white;
+			font-weight: bold;
+			padding-left: 0.65rem;
+			padding-right: 0.65rem;
+			background-color: var(--primary);
+		}
+	}
+}

@@ -11,11 +11,10 @@ export class Session<T = any> {
 		this.key = key;
 	}
 
-	async new(token: string) {
+	new(token: string) {
 		const { storage, key } = this;
 		storage.setItem(key, token);
 		this.refresh();
-		return Promise.resolve();
 	}
 
 	begin() {
@@ -23,38 +22,31 @@ export class Session<T = any> {
 	}
 
 	get online() {
+		const { storage, key } = this;
+
+		if (!(key in storage)) {
+			this.refresh();
+		}
+
 		return this.current != null;
 	}
 
-	async get(refresh = false): Promise<TokenDTO<T>> {
-		var token = null;
-
-		if (refresh || !!this.current) {
+	get(refresh = false): TokenDTO<T> {
+		if (refresh || this.current == null) {
 			this.refresh();
-			token = this.current;
-		} else {
-			token = this.current;
 		}
 
-		return Promise.resolve(token);
+		return this.current;
 	}
 
 	private refresh() {
-		var token = null;
-
 		const { storage, key } = this;
-
-		if (key in storage) {
-			token = decode<TokenDTO<T>>(storage[key]);
-		}
-
-		this.current = token;
+		this.current = key in storage ? decode<TokenDTO<T>>(storage[key]) : null;
 	}
 
-	async die() {
+	end() {
 		const { storage, key } = this;
 		storage.removeItem(key);
 		this.refresh();
-		return Promise.resolve();
 	}
 }
