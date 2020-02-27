@@ -8,8 +8,10 @@ interface AddRouteOptions {
 	path: string;
 	controller?: Type<Controller>;
 	template: string;
-	resolver?: Type<Resolver> | Type<Resolver>[];
+	resolver?: PossibleResolver | PossibleResolver[] | false;
 }
+
+type PossibleResolver = Resolver | Type<Resolver>;
 
 export class Router {
 	private root: HTMLElement;
@@ -38,15 +40,13 @@ export class Router {
 	private async setRoute() {
 		await this.onChange();
 
-		if (this.resolvers.size > 0) {
-			await Promise.all([...this.resolvers].map(r => r.resolve()));
-		}
-
 		const { controller, template } = await this.parseHash();
 
 		if (this.current instanceof Controller) {
-			this.current.dispose();
+			await this.current.dispose();
 		}
+
+		globalThis.$ctrl = controller;
 
 		this.root.innerHTML = null;
 		this.root.innerHTML = template;
@@ -60,15 +60,30 @@ export class Router {
 
 	private async parseHash() {
 		const { hash } = window.location;
-
-		const routes = [...this.routes.entries()];
-		const match = routes.find(([, route]) => route.matches(hash));
+		const match = this.find(hash);
 		if (match) {
 			const [, route] = match;
 			return route.resolve(hash);
 		} else {
 			throw new NotFoundError();
 		}
+	}
+
+	entries() {
+		return [...this.routes.entries()];
+	}
+
+	has(name: string) {
+		return this.routes.has(name);
+	}
+
+	get(name: string) {
+		return { ...this.routes.get(name) };
+	}
+
+	find(hash: string) {
+		const routes = this.entries();
+		return routes.find(([, route]) => route.matches(hash));
 	}
 
 	add(name: string, config: AddRouteOptions): Router {
@@ -78,7 +93,12 @@ export class Router {
 			path,
 			controller,
 			template,
-			Array.isArray(resolver) ? resolver : Array.of(resolver).filter(Boolean)
+			(resolver === false
+				? new Array()
+				: Array.isArray(resolver)
+				? [...this.resolvers, ...resolver]
+				: [...this.resolvers, ...Array.of(resolver).filter(Boolean)]
+			).map(r => (r instanceof Resolver ? r : new r(this)))
 		);
 
 		this.routes.set(name, route);
@@ -86,7 +106,7 @@ export class Router {
 		return this;
 	}
 
-	use(resolver: Resolver | Type<Resolver>) {
+	use(resolver: PossibleResolver) {
 		this.resolvers.add(resolver instanceof Resolver ? resolver : new resolver());
 	}
 

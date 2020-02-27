@@ -1,5 +1,5 @@
 <div class="panel">
-	<h1>Manage orders</h1>
+	<h1>Our customers' reviews</h1>
 	<div class="row">
 		<div class="col-6">
 			<button id="new-btn" class="btn btn-success" type="button">
@@ -11,10 +11,10 @@
 		</div>
 	</div>
 	<hr />
-	<div id="order-list"></div>
+	<div id="review-list"></div>
 </div>
 
-<div id="order-modal" class="modal modal-primary fade" tabindex="-1" role="dialog">
+<div id="review-modal" class="modal modal-primary fade" tabindex="-1" role="dialog">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -24,8 +24,8 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<form id="order-form" class="needs-validation container-fluid" novalidate>
-					<input id="order-id" type="hidden" />
+				<form id="review-form" class="needs-validation container-fluid" novalidate>
+					<input id="review-id" type="hidden" />
 					<div class="form-group">
 						<label for="code">Code</label>
 						<div class="input-group">
@@ -61,7 +61,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				<button type="submit" form="order-form" class="btn btn-success">Save</button>
+				<button type="submit" form="review-form" class="btn btn-success">Save</button>
 			</div>
 		</div>
 	</div>

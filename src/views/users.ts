@@ -1,11 +1,9 @@
 import { Controller } from "core";
 import { User } from "src/classes/user";
+import { setValidity, toaster } from "src/elements/bootstrap";
 import api from "../provider";
 import * as moment from "moment";
 import "./users.scss";
-import { setValidity, toaster } from "src/elements/bootstrap";
-
-var roles = null;
 
 interface Role {
 	id: number;
@@ -14,13 +12,13 @@ interface Role {
 
 export class UsersController extends Controller {
 	private roles: Array<Role>;
+	private list: HTMLElement;
 	private form: HTMLFormElement;
 	private modal: HTMLElement;
 	private users: Array<User>;
 
 	constructor() {
 		super();
-		this.save = this.save.bind(this);
 	}
 
 	async onInit() {
@@ -33,9 +31,8 @@ export class UsersController extends Controller {
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		$("#new-btn").click(this.promptNew);
-
-		$("#user-list").click(ev => {
+		this.list = document.querySelector<HTMLElement>("#user-list");
+		$(this.list).click(ev => {
 			const item =
 				ev.target && ev.target.matches(".user-item")
 					? $(ev.target)
@@ -50,8 +47,8 @@ export class UsersController extends Controller {
 			}
 		});
 
-		await this.loadRoles();
-		await this.listUsers();
+		await this.getRoles();
+		await this.getUsers();
 	}
 
 	show = () => {
@@ -105,7 +102,7 @@ export class UsersController extends Controller {
 		this.show();
 	};
 
-	save(ev: Event) {
+	save = (ev: Event) => {
 		ev.preventDefault();
 		ev.stopPropagation();
 
@@ -179,7 +176,7 @@ export class UsersController extends Controller {
 					})
 					.then(async ({ message }) => {
 						toaster(message, "success");
-						this.listUsers();
+						this.getUsers();
 						this.hide();
 					})
 					.catch(({ message }) => {
@@ -198,7 +195,7 @@ export class UsersController extends Controller {
 					})
 					.then(async ({ message }) => {
 						toaster(message, "success");
-						this.listUsers();
+						this.getUsers();
 						this.hide();
 					})
 					.catch(({ message }) => {
@@ -210,10 +207,10 @@ export class UsersController extends Controller {
 				this.form.classList.replace("was-validated", "needs-validation");
 			});
 		}
-	}
+	};
 
-	async loadRoles() {
-		this.roles = (await api.list<Role>("auth/roles")).data;
+	async getRoles() {
+		this.roles = JSON.parse(localStorage.getItem("roles"));
 		const option = document.createElement("option");
 		option.value = "";
 		option.textContent = "-- Select an item from the list --";
@@ -228,7 +225,7 @@ export class UsersController extends Controller {
 		);
 	}
 
-	async listUsers() {
+	async getUsers() {
 		const container = document.querySelector("#user-list");
 		container.innerHTML = null;
 
@@ -290,7 +287,7 @@ export class UsersController extends Controller {
 		return badge;
 	};
 
-	onDispose() {
+	async onDispose() {
 		this.form.removeEventListener("submit", this.save, false);
 	}
 }

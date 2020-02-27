@@ -15,7 +15,7 @@ export class Route {
 		path: string,
 		controller: Type<Controller>,
 		template: string,
-		resolve: Type<Resolver>[] = []
+		resolvers: Resolver[] = []
 	) {
 		if (path.charAt(0) !== "/")
 			throw new InvalidPathError(
@@ -26,7 +26,7 @@ export class Route {
 
 		this.path = path;
 		this.controller = controller;
-		this.resolvers = resolve.map(ctor => new ctor(this));
+		this.resolvers = resolvers;
 		this.template = template;
 		this.isCurrent = false;
 	}
@@ -92,7 +92,11 @@ export class Route {
 				controller: controller
 					? new controller(
 							resolvers.length
-								? mix(await Promise.all(this.resolvers.map(r => r.resolve(params))))
+								? mix(
+										(await (await Promise.all(this.resolvers.map(r => r.resolve(params)))).filter(
+											r => typeof r === "object"
+										)) as object[]
+								  )
 								: params
 					  )
 					: null,

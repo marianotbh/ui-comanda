@@ -5,8 +5,10 @@ import api from "../provider";
 export class DashboardController extends Controller {
 	private currentUser: User;
 
-	constructor() {
+	constructor({ user }) {
 		super();
+		this.currentUser = user;
+		debugger;
 	}
 
 	async onInit() {

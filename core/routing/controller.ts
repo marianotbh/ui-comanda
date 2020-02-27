@@ -1,6 +1,6 @@
 export abstract class Controller {
-	onInit() {}
-	onDispose() {}
+	async onInit() {}
+	async onDispose() {}
 
 	async initialize() {
 		await this.onInit();

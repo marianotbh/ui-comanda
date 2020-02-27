@@ -3,7 +3,7 @@ import { Session } from "src/session";
 import { withClass } from "src/elements/bootstrap/utils";
 
 export class NavigationResolver extends Resolver {
-	async resolve(): Promise<object> {
+	async resolve(): Promise<void> {
 		const navbar = $("#navbar");
 		if (Session.online) {
 			if (navbar.find(".dropdown") != null) {
@@ -26,7 +26,7 @@ export class NavigationResolver extends Resolver {
 					</li>
 				`);
 				navbar.find(".dropdown-menu").append(
-					createAction("Profile", () => (location.hash = "profile")),
+					createAction("Profile", () => (location.hash = `profile/${Session.get().payload.name}`)),
 					createAction("Settings", () => (location.hash = "settings")),
 					withClass("dropdown-divider")(document.createElement("div")),
 					createAction("Logout", () => {
@@ -40,7 +40,7 @@ export class NavigationResolver extends Resolver {
 				<a class="nav-link" href="#login">Login</a>
 			`);
 		}
-		return Promise.resolve({});
+		return Promise.resolve();
 	}
 }
 

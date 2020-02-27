@@ -15,7 +15,8 @@ export class LoginController extends Controller {
 		this.login = this.login.bind(this);
 	}
 
-	onInit() {
+	async onInit() {
+		$("#sidebar").hide();
 		this.form = document.querySelector<HTMLFormElement>("#login");
 		this.form.addEventListener("submit", this.login, false);
 		this.username = document.querySelector<HTMLInputElement>("#username");
@@ -61,7 +62,7 @@ export class LoginController extends Controller {
 		}
 	}
 
-	onDispose() {
+	async onDispose() {
 		this.form.removeEventListener("submit", this.login, false);
 	}
 }

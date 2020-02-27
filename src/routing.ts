@@ -6,12 +6,14 @@ import {
 	OrdersController,
 	UsersController,
 	ProfileController,
-	PermissionsController,
-	SettingsController
+	SettingsController,
+	ReviewsController,
+	MenuController
 } from "./views";
 import { AuthResolver, NavigationResolver } from "./resolvers";
 import { ActionsResolver } from "./resolvers/actions";
 import { Session } from "./session";
+import { PrefetchResolver } from "./resolvers/prefetch";
 
 const main = document.querySelector<HTMLElement>("#root");
 
@@ -20,7 +22,8 @@ const router = new Router(main);
 const from = (name: string) => require(`./views/${name}.html`);
 
 router.use(AuthResolver);
-router.use(new ActionsResolver(["login", "profile", "settings", "403", "404"], false));
+router.use(PrefetchResolver);
+router.use(new ActionsResolver({ exceptOn: ["login", "profile", "settings", "403", "404"] }));
 router.use(NavigationResolver);
 
 router
@@ -32,17 +35,8 @@ router
 	.add("login", {
 		path: "/login",
 		controller: LoginController,
-		template: from("login")
-	})
-	.add("profile", {
-		path: "/profile",
-		controller: ProfileController,
-		template: from("profile")
-	})
-	.add("settings", {
-		path: "/settings",
-		controller: SettingsController,
-		template: from("settings")
+		template: from("login"),
+		resolver: false
 	})
 	.add("users", {
 		path: "/users",
@@ -59,7 +53,26 @@ router
 		controller: TablesController,
 		template: from("tables")
 	})
-
+	.add("menu", {
+		path: "/menu",
+		controller: MenuController,
+		template: from("menu")
+	})
+	.add("reviews", {
+		path: "/reviews",
+		controller: ReviewsController,
+		template: from("reviews")
+	})
+	.add("profile", {
+		path: "/profile/{username}",
+		controller: ProfileController,
+		template: from("profile")
+	})
+	.add("settings", {
+		path: "/settings",
+		controller: SettingsController,
+		template: from("settings")
+	})
 	.add("403", {
 		path: "/403",
 		template: from("not-authorized")
@@ -70,17 +83,11 @@ router
 	});
 
 if (Session.isAdmin() || Session.isManager()) {
-	router
-		.add("reviews", {
-			path: "/reviews",
-			controller: PermissionsController,
-			template: from("reviews")
-		})
-		.add("permissions", {
-			path: "/permissions",
-			controller: PermissionsController,
-			template: from("permissions")
-		});
+	router.add("reviews", {
+		path: "/reviews",
+		//controller: PermissionsController,
+		template: from("reviews")
+	});
 }
 
 router.onChange = () => {

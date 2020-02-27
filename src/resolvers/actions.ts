@@ -1,27 +1,25 @@
 import { Resolver } from "core";
 import { Session } from "src/session";
-
-const ex = `
-	<a
-		class="nav-link"
-		id="v-pills-settings-tab"
-		data-toggle="pill"
-		href="#v-pills-settings"
-		role="tab"
-		aria-controls="v-pills-settings"
-		aria-selected="false"
-		>Settings</a
-	>
-`;
+import router from "../routing";
 
 const cleanHash = () => {
 	const hash = location.hash.replace(/[\#]/g, "");
 	return hash.charAt(0) === "/" ? hash.substr(1) : hash;
 };
 
+interface ActionsResolverOptions {
+	onlyOn?: string[];
+	exceptOn?: string[];
+}
+
 export class ActionsResolver extends Resolver {
-	constructor(private routes: string[] = [], private inCollection: boolean = true) {
+	private checkedRoutes: string[];
+	private exceptedRoutes: string[];
+
+	constructor({ onlyOn = [], exceptOn = [] }: ActionsResolverOptions = {}) {
 		super();
+		this.checkedRoutes = onlyOn;
+		this.exceptedRoutes = exceptOn;
 	}
 
 	async resolve(): Promise<object> {
@@ -30,29 +28,38 @@ export class ActionsResolver extends Resolver {
 			const sidebar = $("#sidebar");
 			if (Session.online && this.shouldShow(current)) {
 				if (!sidebar.html().length) {
+					if (Session.isAdmin() || Session.isManager()) {
+						sidebar.append(createAction("📊 Dashboard", "/"));
+					}
+
 					sidebar.append(
-						createAction("📊 Dashboard", "#"),
-						createAction("🍽️ Tables", "#tables"),
-						createAction("🙋‍♂️ Orders", "#orders"),
-						createAction("🍲 Menu", "#menu"),
-						createAction("👥 Users", "#users")
+						createAction("🙋‍♂️ Orders", "/orders"),
+						createAction("🍽️ Tables", "/tables"),
+						createAction("🍲 Menu", "/menu")
 					);
 
 					if (Session.isAdmin() || Session.isManager()) {
 						sidebar.append(
-							createAction("🔒 Permissions", "#permissions"),
-							createAction("📝 Reviews", "#reviews")
+							createAction("👥 Users", "/users"),
+							createAction("📝 Reviews", "/reviews")
 						);
 					}
 				}
 
-				for (const link of [...sidebar.find(".sidebar-link")]) {
-					if (link.classList.contains("active")) {
-						link.classList.remove("active");
+				const actions = [...sidebar.find(".sidebar-action")];
+
+				for (const action of actions) {
+					if (action.classList.contains("active")) {
+						action.classList.remove("active");
 					}
 				}
 
-				sidebar.find(`.sidebar-link[href="#${current}"]`)?.[0]?.classList.add("active");
+				const match = router.find(location.hash);
+				if (match) {
+					const [, route] = match;
+					const active = actions.find(a => route.matches(a.getAttribute("data-route")));
+					active.classList.add("active");
+				}
 
 				sidebar.show();
 			} else {
@@ -65,18 +72,19 @@ export class ActionsResolver extends Resolver {
 	}
 
 	private shouldShow(currentHash: string) {
-		if (this.inCollection) {
-			return this.routes.find(x => x === currentHash);
-		} else {
-			return this.routes.find(x => x === currentHash) === undefined;
-		}
+		const [name] = router.find(currentHash) ?? [];
+		return this.checkedRoutes.length || this.exceptedRoutes.length
+			? (this.checkedRoutes.length && this.checkedRoutes.indexOf(name) !== -1) ||
+					(this.exceptedRoutes.length && this.exceptedRoutes.indexOf(name) === -1)
+			: true;
 	}
 }
 
-const createAction = (text: string, href: string) => {
-	const a = document.createElement("a");
-	a.href = href;
-	a.textContent = text;
-	a.className = "sidebar-link";
-	return a;
+const createAction = (text: string, route: string) => {
+	const action = document.createElement("button");
+	action.textContent = text;
+	action.className = "sidebar-action";
+	action.setAttribute("data-route", route);
+	action.onclick = () => (location.hash = route);
+	return action;
 };

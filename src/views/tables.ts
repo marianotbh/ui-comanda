@@ -1,8 +1,9 @@
 import { Controller, block } from "core";
 import { Table } from "src/classes";
+import { setValidity, toaster } from "src/elements/bootstrap";
 import api from "../provider";
 import * as moment from "moment";
-import { setValidity, toaster } from "src/elements/bootstrap";
+import "./tables.scss";
 
 interface State {
 	id: number;
@@ -14,10 +15,15 @@ export class TablesController extends Controller {
 	private states: State[];
 
 	async onInit() {
-		await this.listTables();
+		await this.getStates();
+		await this.getTables();
 	}
 
-	async listTables() {
+	private async getStates() {
+		this.states = JSON.parse(localStorage.getItem("tableStates"));
+	}
+
+	private async getTables() {
 		const container = document.querySelector("#table-list");
 		const ref = block(container, "Loading...");
 		container.innerHTML = null;

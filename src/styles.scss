@@ -38,13 +38,17 @@ body {
 	width: 250px;
 	padding-right: 2rem;
 
-	.sidebar-link {
+	.sidebar-action {
 		width: 100%;
 		display: block;
 		padding: 0.5rem 0rem;
 		text-decoration: none;
 		transition: all 0.25s ease-in;
 		border-radius: 0.35rem;
+		background: none;
+		text-align: left;
+		border: none;
+		color: var(--primary);
 
 		&.active {
 			color: white;
@@ -52,6 +56,9 @@ body {
 			padding-left: 0.65rem;
 			padding-right: 0.65rem;
 			background-color: var(--primary);
+			&:focus {
+				outline: none;
+			}
 		}
 	}
 }
