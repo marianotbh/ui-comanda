@@ -1,14 +1,9 @@
-import { Controller, block, groupBy } from "core";
+import { Controller, block, group } from "core";
 import { setValidity, toaster, modal } from "src/elements/bootstrap";
-import { Menu } from "src/classes";
+import { Menu, Role } from "src/classes";
 import api from "../provider";
 import * as moment from "moment";
 import "./menu.scss";
-
-interface Role {
-	id: number;
-	name: string;
-}
 
 export class MenuController extends Controller {
 	private menu: Menu[];
@@ -20,6 +15,9 @@ export class MenuController extends Controller {
 	async onInit() {
 		this.form = document.querySelector("#menu-form");
 		this.form.addEventListener("submit", this.save, false);
+		this.form.addEventListener("change", () => {
+			this.form.classList.replace("was-validated", "needs-validation");
+		});
 
 		this.modal = document.querySelector("#menu-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
@@ -65,7 +63,7 @@ export class MenuController extends Controller {
 		$("#role").append(option);
 		$("#role").append(
 			...this.roles
-				.filter(role => [1, 2, 3].indexOf(role.id) === -1)
+				.filter(role => [Role.Admin, Role.Manager, Role.Floor].indexOf(role.id) === -1)
 				.map(role => {
 					const option = document.createElement("option");
 					option.value = role.id.toString();
@@ -86,7 +84,7 @@ export class MenuController extends Controller {
 			.then(({ data, total }) => {
 				this.menu = data;
 				if (this.menu.length) {
-					const groups = groupBy(this.menu, item => item.role);
+					const groups = group(this.menu, item => item.role);
 					this.roles.forEach(role => {
 						const group = groups.get(role.id);
 						if (group && group.length) {
@@ -256,10 +254,6 @@ export class MenuController extends Controller {
 						ref.unblock();
 					});
 			}
-		} else {
-			this.form.addEventListener("change", () => {
-				this.form.classList.replace("was-validated", "needs-validation");
-			});
 		}
 	};
 
@@ -300,5 +294,9 @@ export class MenuController extends Controller {
             </div>
         `;
 		return el;
+	}
+
+	async onDispose() {
+		this.form.removeEventListener("submit", this.save, false);
 	}
 }

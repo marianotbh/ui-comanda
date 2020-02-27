@@ -14,8 +14,8 @@ export class PrefetchResolver extends Resolver {
 				api.list("tables/states")
 			]);
 			localStorage.setItem("roles", JSON.stringify(roles));
-			localStorage.setItem("tableStates", JSON.stringify(orderStates));
-			localStorage.setItem("orderStates", JSON.stringify(tableStates));
+			localStorage.setItem("orderStates", JSON.stringify(orderStates));
+			localStorage.setItem("tableStates", JSON.stringify(tableStates));
 		}
 	}
 }

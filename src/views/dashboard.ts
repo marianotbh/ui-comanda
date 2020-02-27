@@ -8,7 +8,6 @@ export class DashboardController extends Controller {
 	constructor({ user }) {
 		super();
 		this.currentUser = user;
-		debugger;
 	}
 
 	async onInit() {

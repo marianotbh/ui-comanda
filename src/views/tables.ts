@@ -1,26 +1,67 @@
 import { Controller, block } from "core";
-import { Table } from "src/classes";
-import { setValidity, toaster } from "src/elements/bootstrap";
+import { Table, State } from "src/classes";
+import { setValidity, toaster, modal } from "src/elements/bootstrap";
 import api from "../provider";
 import * as moment from "moment";
 import "./tables.scss";
 
-interface State {
-	id: number;
-	name: string;
-}
-
 export class TablesController extends Controller {
 	private tables: Table[];
 	private states: State[];
+	private list: HTMLElement;
+	private form: HTMLFormElement;
+	private modal: HTMLElement;
+	private editMode: boolean = false;
 
 	async onInit() {
+		this.form = document.querySelector("#table-form");
+		this.form.addEventListener("submit", this.save, false);
+
+		this.modal = document.querySelector("#table-modal");
+		$(this.modal).on("hidden.bs.modal", () => {
+			this.form.reset();
+			this.form.classList.replace("was-validated", "needs-validation");
+			this.editMode = false;
+		});
+
+		this.list = document.querySelector("#table-list");
+		$(this.list).click(ev => {
+			const item =
+				ev.target && ev.target.matches(".table-item")
+					? $(ev.target)
+					: $(ev.target).parents(".table-item")?.[0];
+
+			if (item) {
+				const code = $(item).attr("id");
+				const table = this.tables.find(table => table.code == code);
+				if (table) {
+					this.promptEdit(table);
+				}
+			}
+		});
+
+		$("#capacity").on("input change", (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
+			$("#capacity-value").text(ev.target.value);
+		});
+
 		await this.getStates();
 		await this.getTables();
 	}
 
 	private async getStates() {
 		this.states = JSON.parse(localStorage.getItem("tableStates"));
+		const empty = document.createElement("option");
+		empty.value = "";
+		empty.textContent = "-- Select an item from the list --";
+		$("#state").append(empty);
+		$("#state").append(
+			...this.states.map(state => {
+				const option = document.createElement("option");
+				option.value = state.id.toString();
+				option.textContent = state.name;
+				return option;
+			})
+		);
 	}
 
 	private async getTables() {
@@ -46,12 +87,168 @@ export class TablesController extends Controller {
 					`;
 				}
 			})
+			.catch(({ message }) => {
+				this.list.innerHTML = `
+					<div class="alert alert-danger d-flex align-items-center" role="alert">
+						<i class="fas fa-exclamation-triangle mr-3"></i>
+                        <div>
+                            <div>Something went wrong!</div>
+                            <div>${message}</div>
+                        </div>
+					</div>
+				`;
+			})
 			.finally(() => {
 				ref.unblock();
 			});
 	}
 
-	private mapTable(table: Table) {
+	save = (ev: Event) => {
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		const code = document.querySelector<HTMLInputElement>("#code");
+		const capacity = document.querySelector<HTMLInputElement>("#capacity");
+		const state = document.querySelector<HTMLInputElement>("#state");
+
+		if (!code.value) setValidity(code, "This field is required");
+		else if (code.value.length !== 5) setValidity(code, "Code must be 5 characters long");
+		else setValidity(code, true);
+
+		if (!capacity.value) setValidity(capacity, "This field is required");
+		else if (capacity.value.length < 1) setValidity(capacity, "Capacity should be at least 1");
+		else if (capacity.value.length > 12) setValidity(capacity, "Max capacity is 12");
+		else setValidity(capacity, true);
+
+		if (this.editMode) {
+			if (!state.value) setValidity(state, "This field is required");
+			else if (this.states.map(s => s.id).indexOf(parseInt(state.value)) === -1)
+				setValidity(state, "State is not a valid value");
+			else setValidity(state, true);
+		}
+
+		this.form.classList.replace("needs-validation", "was-validated");
+
+		if (this.form.checkValidity()) {
+			if (this.editMode) {
+				const ref = block(this.form, "Saving changes...");
+				api
+					.put("tables", code.value, {
+						capacity: capacity.value,
+						state: parseInt(state.value)
+					})
+					.then(async ({ message }) => {
+						toaster(message, "success");
+						this.getTables();
+						this.hide();
+					})
+					.catch(({ message }) => {
+						toaster(message, "danger");
+					})
+					.finally(() => {
+						ref.unblock();
+					});
+			} else {
+				const ref = block(this.form, "Creating item...");
+				api
+					.post("tables", {
+						code: code.value,
+						capacity: capacity.value,
+						state: parseInt(state.value)
+					})
+					.then(async ({ message }) => {
+						toaster(message, "success");
+						this.getTables();
+						this.hide();
+					})
+					.catch(({ message }) => {
+						toaster(message, "danger");
+					})
+					.finally(() => {
+						ref.unblock();
+					});
+			}
+		}
+	};
+
+	promptNew = () => {
+		this.editMode = false;
+
+		$(this.modal)
+			.find(".modal-title")
+			.text("Add a table");
+
+		$(this.form)
+			.find("#state")
+			.parents(".form-group")
+			.hide();
+
+		$("#delete").hide();
+
+		this.show();
+	};
+
+	promptEdit = (table: Table) => {
+		this.editMode = true;
+
+		const form = $(this.form);
+		form.find("#code").val(table.code);
+		form.find("#capacity").val(table.capacity);
+		form.find("#state").val(table.state);
+
+		$(this.form)
+			.find("#state")
+			.parents(".form-group")
+			.show();
+
+		$("#delete").show();
+
+		$(this.modal)
+			.find(".modal-title")
+			.text("Edit table");
+
+		this.show();
+	};
+
+	promptDelete = () => {
+		modal({
+			title: "Wait a minute!",
+			body: "Are you sure you want to delete this item?",
+			style: "warning"
+		}).then(() => {
+			api
+				.delete("tables", document.querySelector<HTMLInputElement>("#code").value)
+				.then(({ message }) => {
+					toaster(message, "success");
+					this.getTables();
+					this.hide();
+				})
+				.catch(({ message }) => {
+					toaster(message, "danger");
+				});
+		});
+	};
+
+	private show() {
+		$("#capacity-value").text(
+			$("#capacity")
+				.val()
+				.toString()
+		);
+
+		$(this.modal).modal({
+			backdrop: true,
+			keyboard: true,
+			focus: true,
+			show: true
+		});
+	}
+
+	private hide() {
+		$(this.modal).modal("hide");
+	}
+
+	private mapTable = (table: Table) => {
 		const el = document.createElement("div");
 		el.id = table.code;
 		el.className = "table-item";
@@ -68,7 +265,7 @@ export class TablesController extends Controller {
             </div>
         `;
 		return el;
-	}
+	};
 
 	private toBadge = (role: number) => {
 		const badge = document.createElement("span");
@@ -87,4 +284,8 @@ export class TablesController extends Controller {
 		}
 		return badge;
 	};
+
+	async onDispose() {
+		this.form.removeEventListener("submit", this.save, false);
+	}
 }

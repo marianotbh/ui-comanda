@@ -1,4 +1,4 @@
-import { Controller } from "core";
+import { Controller, block } from "core";
 import { User } from "src/classes/user";
 import { setValidity, toaster } from "src/elements/bootstrap";
 import api from "../provider";
@@ -24,6 +24,9 @@ export class UsersController extends Controller {
 	async onInit() {
 		this.form = document.querySelector<HTMLFormElement>("#user-form");
 		this.form.addEventListener("submit", this.save, false);
+		this.form.addEventListener("change", () => {
+			this.form.classList.replace("was-validated", "needs-validation");
+		});
 
 		this.modal = document.querySelector<HTMLElement>("#user-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
@@ -51,56 +54,59 @@ export class UsersController extends Controller {
 		await this.getUsers();
 	}
 
-	show = () => {
-		$(this.modal).modal({
-			backdrop: true,
-			keyboard: true,
-			focus: true,
-			show: true
-		});
-	};
+	async getRoles() {
+		this.roles = JSON.parse(localStorage.getItem("roles"));
+		const option = document.createElement("option");
+		option.value = "";
+		option.textContent = "-- Select an item from the list --";
+		$("#role").append(option);
+		$("#role").append(
+			...this.roles.map(role => {
+				const option = document.createElement("option");
+				option.value = role.id.toString();
+				option.textContent = role.name;
+				return option;
+			})
+		);
+	}
 
-	hide = () => {
-		$(this.modal).modal("hide");
-	};
-
-	promptNew = () => {
-		const form = $(this.form);
-		form.find("#username").prop("readonly", false);
-		form.find("#password").prop("readonly", false);
-		form.find("#password-repeat").prop("readonly", false);
-		form.find("#role").removeAttr("disabled");
-
-		$(this.modal)
-			.find(".modal-title")
-			.text("New user");
-
-		this.show();
-	};
-
-	promptEdit = (user: User) => {
-		const form = $(this.form);
-		form.find("#user-id").val(user.id);
-		form
-			.find("#username")
-			.prop("readonly", true)
-			.val(user.name);
-		form.find("#password").prop("readonly", true);
-		form.find("#password-repeat").prop("readonly", true);
-		form.find("#first-name").val(user.firstName);
-		form.find("#last-name").val(user.lastName);
-		form.find("#email").val(user.email);
-		form
-			.find("#role")
-			.attr("disabled", "true")
-			.val(user.role);
-
-		$(this.modal)
-			.find(".modal-title")
-			.text("Edit user");
-
-		this.show();
-	};
+	async getUsers() {
+		const ref = block(this.list, "Loading...");
+		this.list.innerHTML = null;
+		return api
+			.list<User>("users", {
+				pagination: { length: 10, page: 1 },
+				sort: { field: "lastLoginAt", order: "DESC" }
+			})
+			.then(({ data = [], total }) => {
+				this.users = data;
+				if (this.users.length) {
+					this.list.append(...this.users.map(this.mapUser));
+					this.list.append();
+				} else {
+					this.list.innerHTML = `
+						<div class="alert alert-warning" role="alert">
+							<i class="fas fa-exclamation-triangle mr-2"></i>
+							<b>No users found</b>
+						</div>
+					`;
+				}
+			})
+			.catch(({ message }) => {
+				this.list.innerHTML = `
+					<div class="alert alert-danger d-flex align-items-center" role="alert">
+						<i class="fas fa-exclamation-triangle mr-3"></i>
+                        <div>
+                            <div>Something went wrong!</div>
+                            <div>${message}</div>
+                        </div>
+					</div>
+				`;
+			})
+			.finally(() => {
+				ref.unblock();
+			});
+	}
 
 	save = (ev: Event) => {
 		ev.preventDefault();
@@ -202,53 +208,59 @@ export class UsersController extends Controller {
 						toaster(message, "danger");
 					});
 			}
-		} else {
-			this.form.addEventListener("change", () => {
-				this.form.classList.replace("was-validated", "needs-validation");
-			});
 		}
 	};
 
-	async getRoles() {
-		this.roles = JSON.parse(localStorage.getItem("roles"));
-		const option = document.createElement("option");
-		option.value = "";
-		option.textContent = "-- Select an item from the list --";
-		$("#role").append(option);
-		$("#role").append(
-			...this.roles.map(role => {
-				const option = document.createElement("option");
-				option.value = role.id.toString();
-				option.textContent = role.name;
-				return option;
-			})
-		);
-	}
+	show = () => {
+		$(this.modal).modal({
+			backdrop: true,
+			keyboard: true,
+			focus: true,
+			show: true
+		});
+	};
 
-	async getUsers() {
-		const container = document.querySelector("#user-list");
-		container.innerHTML = null;
+	hide = () => {
+		$(this.modal).modal("hide");
+	};
 
-		return api
-			.list<User>("users", {
-				pagination: { length: 10, page: 1 },
-				sort: { field: "lastLoginAt", order: "DESC" }
-			})
-			.then(({ data = [], total }) => {
-				this.users = data;
-				if (this.users.length) {
-					container.append(...this.users.map(this.mapUser));
-					container.append();
-				} else {
-					container.innerHTML = `
-						<div class="alert alert-warning" role="alert">
-							<i class="fas fa-exclamation-triangle mr-2"></i>
-							<b>No users found</b>
-						</div>
-					`;
-				}
-			});
-	}
+	promptNew = () => {
+		const form = $(this.form);
+		form.find("#username").prop("readonly", false);
+		form.find("#password").prop("readonly", false);
+		form.find("#password-repeat").prop("readonly", false);
+		form.find("#role").removeAttr("disabled");
+
+		$(this.modal)
+			.find(".modal-title")
+			.text("New user");
+
+		this.show();
+	};
+
+	promptEdit = (user: User) => {
+		const form = $(this.form);
+		form.find("#user-id").val(user.id);
+		form
+			.find("#username")
+			.prop("readonly", true)
+			.val(user.name);
+		form.find("#password").prop("readonly", true);
+		form.find("#password-repeat").prop("readonly", true);
+		form.find("#first-name").val(user.firstName);
+		form.find("#last-name").val(user.lastName);
+		form.find("#email").val(user.email);
+		form
+			.find("#role")
+			.attr("disabled", "true")
+			.val(user.role);
+
+		$(this.modal)
+			.find(".modal-title")
+			.text("Edit user");
+
+		this.show();
+	};
 
 	private mapUser = (user: User) => {
 		const el = document.createElement("div");

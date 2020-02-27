@@ -24,6 +24,12 @@ body {
 
 .navbar-brand {
 	font-weight: bolder;
+	white-space: nowrap;
+
+	#chevron {
+		display: none;
+		transition: all 0.5s ease-in-out;
+	}
 }
 
 .panel {
@@ -37,6 +43,7 @@ body {
 #sidebar {
 	width: 250px;
 	padding-right: 2rem;
+	transition: all 0.5s ease-in-out;
 
 	.sidebar-action {
 		width: 100%;
@@ -59,6 +66,35 @@ body {
 			&:focus {
 				outline: none;
 			}
+		}
+	}
+}
+
+@media all and (max-width: 768px) {
+	.navbar-brand {
+		z-index: 998;
+
+		#chevron {
+			display: inline-block;
+
+			&.active {
+				transform: rotate(180deg);
+			}
+		}
+	}
+
+	#sidebar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		padding: 7rem 0.5rem 0;
+		min-height: 100%;
+		background-color: white;
+		transform: translateX(-100%);
+		z-index: 997;
+
+		&.active {
+			transform: translateX(0%);
 		}
 	}
 }

@@ -10,10 +10,14 @@ import {
 	ReviewsController,
 	MenuController
 } from "./views";
-import { AuthResolver, NavigationResolver } from "./resolvers";
-import { ActionsResolver } from "./resolvers/actions";
+import {
+	AuthResolver,
+	NavigationResolver,
+	ActionsResolver,
+	PrefetchResolver,
+	ProfileResolver
+} from "./resolvers";
 import { Session } from "./session";
-import { PrefetchResolver } from "./resolvers/prefetch";
 
 const main = document.querySelector<HTMLElement>("#root");
 
@@ -66,7 +70,8 @@ router
 	.add("profile", {
 		path: "/profile/{username}",
 		controller: ProfileController,
-		template: from("profile")
+		template: from("profile"),
+		resolver: ProfileResolver
 	})
 	.add("settings", {
 		path: "/settings",
@@ -85,7 +90,7 @@ router
 if (Session.isAdmin() || Session.isManager()) {
 	router.add("reviews", {
 		path: "/reviews",
-		//controller: PermissionsController,
+		controller: ReviewsController,
 		template: from("reviews")
 	});
 }
