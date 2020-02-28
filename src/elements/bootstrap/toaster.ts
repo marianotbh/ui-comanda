@@ -27,7 +27,8 @@ export const toaster = (
 						left: "50%",
 						color: "white",
 						fontSize: "1rem",
-						transform: "translateX(-50%)"
+						transform: "translateX(-50%)",
+						zIndex: "9999"
 					})(withClass(`toast bg-${style}`)(document.createElement("div")))
 				)
 			)

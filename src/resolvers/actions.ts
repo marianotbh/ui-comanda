@@ -12,6 +12,26 @@ interface ActionsResolverOptions {
 	exceptOn?: string[];
 }
 
+const overlay = $("#overlay");
+
+overlay.click(() => {
+	hideSidebar();
+});
+
+const showSidebar = () => {
+	$("#sidebar").addClass("active");
+	$("#chevron").addClass("active");
+	$(document.body).addClass("overflow-hidden");
+	$("#overlay").fadeIn();
+};
+
+const hideSidebar = () => {
+	$("#sidebar").removeClass("active");
+	$("#chevron").removeClass("active");
+	$(document.body).removeClass("overflow-hidden");
+	$("#overlay").fadeOut();
+};
+
 export class ActionsResolver extends Resolver {
 	private checkedRoutes: string[];
 	private exceptedRoutes: string[];
@@ -27,6 +47,19 @@ export class ActionsResolver extends Resolver {
 		return new Promise(async resolve => {
 			const sidebar = $("#sidebar");
 			if (Session.online && this.shouldShow(current)) {
+				$(".navbar-brand")[0].onclick = () => {
+					if (window.innerWidth <= 768) {
+						const sidebar = document.querySelector("#sidebar");
+						if (sidebar.classList.contains("active")) {
+							hideSidebar();
+						} else {
+							showSidebar();
+						}
+					} else {
+						location.hash = "/";
+					}
+				};
+
 				if (!sidebar.html().length) {
 					if (Session.isAdmin() || Session.isManager()) {
 						sidebar.append(createAction("📊 Dashboard", "/"));
@@ -65,6 +98,9 @@ export class ActionsResolver extends Resolver {
 			} else {
 				sidebar.hide();
 				sidebar.html(null);
+				$(".navbar-brand")[0].onclick = () => {
+					location.hash = "/";
+				};
 			}
 
 			resolve();
@@ -85,6 +121,9 @@ const createAction = (text: string, route: string) => {
 	action.textContent = text;
 	action.className = "sidebar-action";
 	action.setAttribute("data-route", route);
-	action.onclick = () => (location.hash = route);
+	action.onclick = () => {
+		location.hash = route;
+		hideSidebar();
+	};
 	return action;
 };

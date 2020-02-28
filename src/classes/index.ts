@@ -4,3 +4,4 @@ export * from "./table";
 export * from "./role";
 export * from "./order";
 export * from "./state";
+export * from "./detail";

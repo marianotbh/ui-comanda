@@ -23,30 +23,3 @@ $(document).ready(async () => {
 		);
 	}, 500);
 });
-
-$(window).click((ev: JQuery.ClickEvent<any>) => {
-	if (
-		ev.target &&
-		$(ev.target).parents("#sidebar").length === 0 &&
-		$(ev.target).parents(".navbar-brand").length === 0
-	) {
-		$("#sidebar").removeClass("active");
-		$("#chevron").removeClass("active");
-	}
-});
-
-$(".navbar-brand").click(() => {
-	if (window.innerWidth <= 768) {
-		const chevron = document.querySelector("#chevron");
-		const sidebar = document.querySelector("#sidebar");
-		if (sidebar.classList.contains("active")) {
-			chevron.classList.remove("active");
-			sidebar.classList.remove("active");
-		} else {
-			chevron.classList.add("active");
-			sidebar.classList.add("active");
-		}
-	} else {
-		location.hash = "/";
-	}
-});

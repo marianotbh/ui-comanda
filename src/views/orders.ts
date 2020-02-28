@@ -5,39 +5,29 @@ import api from "../provider";
 import * as moment from "moment";
 import "./orders.scss";
 
-export class Detail {
-	id: number;
-	user: number;
-	order: string;
-	menu: number;
-	amount: number;
-	state: number;
-	createdAt: string;
-	updatedAt: string;
-	removedAt: string;
-}
-
 export class OrdersController extends Controller {
 	private list: HTMLElement;
 	private form: HTMLFormElement;
 	private modal: HTMLElement;
-	private editMode: boolean = false;
+	private selected: Order;
 	private orders: Order[];
 	private states: State[];
 	private users: User[];
 	private tables: Table[];
 	private menu: Menu[];
-	private details: Detail[] = new Array();
 
 	async onInit() {
 		this.form = document.querySelector("#order-form");
 		this.form.addEventListener("submit", this.save, false);
+		this.form.addEventListener("change", () => {
+			this.form.classList.replace("was-validated", "needs-validation");
+		});
 
 		this.modal = document.querySelector("#order-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
 			this.form.reset();
 			this.form.classList.replace("was-validated", "needs-validation");
-			this.editMode = false;
+			this.selected = null;
 		});
 
 		this.list = document.querySelector("#order-list");
@@ -51,7 +41,8 @@ export class OrdersController extends Controller {
 				const code = $(item).attr("id");
 				const order = this.orders.find(order => order.code == code);
 				if (order) {
-					this.promptEdit(order);
+					this.selected = order;
+					this.promptEdit();
 				}
 			}
 		});
@@ -201,21 +192,7 @@ export class OrdersController extends Controller {
 				hideable: false
 			});
 		} else {
-			const el = document.createElement("div");
-			el.id = menu.value;
-			el.className = "detail-item";
-			el.innerHTML = `
-				<div>
-				
-					<b>${this.menu.find(m => m.id === parseInt(menu.value)).name}</b>
-					<i class="fas fa-times font-weight-bold text-warning mx-2"></i>
-					<span>${amount.value}</span>
-				</div>
-				<div>
-
-				</div>
-			`;
-			$("#detail-list").append(el);
+			this.mapDetail(parseInt(menu.value), parseInt(amount.value));
 		}
 	};
 
@@ -223,20 +200,47 @@ export class OrdersController extends Controller {
 		ev.preventDefault();
 		ev.stopPropagation();
 
-		const code = document.querySelector<HTMLInputElement>("#code");
-		const capacity = document.querySelector<HTMLInputElement>("#capacity");
+		const detail = Array.from(document.querySelectorAll<HTMLElement>("#detail-list .detail-item"));
+		const menu = document.querySelector<HTMLInputElement>("#menu");
+		const amount = document.querySelector<HTMLInputElement>("#amount");
+		const table = document.querySelector<HTMLInputElement>("#table");
 		const state = document.querySelector<HTMLInputElement>("#state");
+		const user = document.querySelector<HTMLInputElement>("#user");
 
-		if (!code.value) setValidity(code, "This field is required");
-		else if (code.value.length !== 5) setValidity(code, "Code must be 5 characters long");
-		else setValidity(code, true);
+		if (detail.length === 0) {
+			setValidity(menu, "Select at least one item from the list");
+			setValidity(amount, "*");
+		} else if (
+			!detail.every(d => {
+				const menu = this.menu.find(m => m.id === parseInt(d.id));
+				const amount = d.querySelector<HTMLInputElement>(".amount");
+				if (menu.stock < parseInt(amount.value)) {
+					setValidity(amount, "Ordered too many");
+					return false;
+				} else {
+					setValidity(amount, true);
+					return true;
+				}
+			})
+		) {
+			setValidity(menu, "Check the amounts");
+			setValidity(amount, "*");
+		} else {
+			setValidity(menu, true);
+			setValidity(amount, true);
+		}
 
-		if (!capacity.value) setValidity(capacity, "This field is required");
-		else if (capacity.value.length < 1) setValidity(capacity, "Capacity should be at least 1");
-		else if (capacity.value.length > 12) setValidity(capacity, "Max capacity is 12");
-		else setValidity(capacity, true);
+		if (!table.value) setValidity(table, "This field is required");
+		else if (this.tables.map(t => t.code).indexOf(table.value) === -1)
+			setValidity(table, "Table code is invalid");
+		else setValidity(table, true);
 
-		if (this.editMode) {
+		if (!user.value) setValidity(user, "This field is required");
+		else if (this.users.map(u => u.id).indexOf(parseInt(user.value)) === -1)
+			setValidity(user, "User selected is invalid");
+		else setValidity(user, true);
+
+		if (this.selected) {
 			if (!state.value) setValidity(state, "This field is required");
 			else if (this.states.map(s => s.id).indexOf(parseInt(state.value)) === -1)
 				setValidity(state, "State is not a valid value");
@@ -246,12 +250,17 @@ export class OrdersController extends Controller {
 		this.form.classList.replace("needs-validation", "was-validated");
 
 		if (this.form.checkValidity()) {
-			if (this.editMode) {
+			if (this.selected) {
 				const ref = block(this.form, "Saving changes...");
 				api
-					.put("orders", code.value, {
-						capacity: capacity.value,
-						state: parseInt(state.value)
+					.put("orders", this.selected.code, {
+						detail: detail.map(d => ({
+							menu: parseInt(d.id),
+							amount: parseInt(d.querySelector<HTMLInputElement>(".amount").value)
+						})),
+						table: table.value,
+						state: parseInt(state.value),
+						user: user.value
 					})
 					.then(async ({ message }) => {
 						toaster(message, "success");
@@ -268,9 +277,12 @@ export class OrdersController extends Controller {
 				const ref = block(this.form, "Creating item...");
 				api
 					.post("orders", {
-						code: code.value,
-						capacity: capacity.value,
-						state: parseInt(state.value)
+						detail: detail.map(d => ({
+							menu: parseInt(d.id),
+							amount: parseInt(d.querySelector<HTMLInputElement>(".amount").value)
+						})),
+						table: table.value,
+						user: user.value
 					})
 					.then(async ({ message }) => {
 						toaster(message, "success");
@@ -288,8 +300,6 @@ export class OrdersController extends Controller {
 	};
 
 	promptNew = () => {
-		this.editMode = false;
-
 		$(this.modal)
 			.find(".modal-title")
 			.text("New order");
@@ -304,14 +314,11 @@ export class OrdersController extends Controller {
 		this.show();
 	};
 
-	promptEdit = (order: Order) => {
-		this.editMode = true;
-
+	promptEdit = () => {
 		const form = $(this.form);
-		form.find("#code").val(order.code);
-		form.find("#capacity").val(order.user);
-		form.find("#capacity").val(order.table);
-		form.find("#state").val(order.state);
+		form.find("#capacity").val(this.selected.user);
+		form.find("#capacity").val(this.selected.table);
+		form.find("#state").val(this.selected.state);
 
 		$(this.form)
 			.find("#state")
@@ -359,7 +366,7 @@ export class OrdersController extends Controller {
 		$(this.modal).modal("hide");
 	}
 
-	private mapOrder(order: Order) {
+	private mapOrder = (order: Order) => {
 		const el = document.createElement("div");
 		el.id = order.code;
 		el.className = "order-item";
@@ -376,17 +383,49 @@ export class OrdersController extends Controller {
             </div>
         `;
 		return el;
-	}
+	};
+
+	private mapDetail = (menuId: number, amount: number) => {
+		const el =
+			Array.from(document.querySelectorAll("#detail-list .detail-item")).find(
+				item => parseInt(item.id) === menuId
+			) ?? document.createElement("div");
+		if (el.id) {
+			const currentAmount = el.querySelector<HTMLInputElement>(".amount");
+			currentAmount.value = (parseInt(currentAmount.value) + amount).toString();
+		} else {
+			el.id = menuId.toString();
+			el.className = "detail-item";
+			el.innerHTML = `
+					<div>
+						<b>${this.menu.find(m => m.id === menuId).name}</b>
+						<i class="fas fa-times font-weight-bold text-warning ml-2 mr-1"></i>
+						<input type="number" value=${amount} class="amount" readonly />
+					</div>
+					<div>
+						<button type="button" class="btn btn-white delete">
+							<i class="fas fa-times font-weight-bold"></i>
+						</button>
+					</div>
+				`;
+			$("#detail-list").append(el);
+			$(el)
+				.find(".delete")
+				.click(() => {
+					el.parentElement.removeChild(el);
+				});
+		}
+	};
 
 	private toBadge = (role: number) => {
 		const badge = document.createElement("span");
 		badge.className = "badge";
 		badge.textContent = this.states.find(r => r.id == role)?.name;
 		switch (role) {
-			case 1:
+			case Role.Admin:
 				badge.classList.add("badge-warning");
 				break;
-			case 2:
+			case Role.Manager:
 				badge.classList.add("badge-info");
 				break;
 			default:

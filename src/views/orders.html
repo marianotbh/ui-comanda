@@ -25,15 +25,13 @@
 			</div>
 			<div class="modal-body">
 				<form id="order-form" class="needs-validation container-fluid" novalidate>
-					<input id="code" class="d-none" />
-
 					<label class="mb-0"><b>Detail</b></label>
 					<div id="detail-list"></div>
-					<div class="row align-items-stretch">
-						<div class="col-7">
+					<div id="detail" class="row align-items-stretch">
+						<div class="col-8">
 							<select id="menu" class="form-control"></select>
 						</div>
-						<div class="col-3">
+						<div class="col">
 							<input
 								type="number"
 								id="amount"
@@ -41,11 +39,12 @@
 								max="99"
 								minlength="1"
 								maxlength="2"
-								class="form-control text-center"
+								placeholder="0"
+								class="form-control w-100 text-center"
 							/>
 						</div>
 						<div class="col-auto">
-							<button type="button" class="btn btn-success h-100" onclick="$ctrl.addDetail()">
+							<button type="button" class="btn btn-success 100" onclick="$ctrl.addDetail()">
 								<i class="fas fa-check"></i>
 							</button>
 						</div>
@@ -73,7 +72,7 @@
 				</div>
 				<div>
 					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-					<button type="submit" form="table-form" class="btn btn-success">Save</button>
+					<button type="submit" form="order-form" class="btn btn-success">Save</button>
 				</div>
 			</div>
 		</div>

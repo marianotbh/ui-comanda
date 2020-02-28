@@ -16,6 +16,9 @@ export class TablesController extends Controller {
 	async onInit() {
 		this.form = document.querySelector("#table-form");
 		this.form.addEventListener("submit", this.save, false);
+		this.form.addEventListener("change", () => {
+			this.form.classList.replace("was-validated", "needs-validation");
+		});
 
 		this.modal = document.querySelector("#table-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
@@ -71,7 +74,7 @@ export class TablesController extends Controller {
 		return api
 			.list<Table>("tables", {
 				pagination: { page: 1, length: 100 },
-				sort: { field: "updatedAt", order: "DESC" }
+				sort: { field: "updatedAt", order: "ASC" }
 			})
 			.then(({ data, total }) => {
 				this.tables = data;
@@ -267,19 +270,22 @@ export class TablesController extends Controller {
 		return el;
 	};
 
-	private toBadge = (role: number) => {
+	private toBadge = (state: number) => {
 		const badge = document.createElement("span");
 		badge.className = "badge";
-		badge.textContent = this.states.find(r => r.id == role)?.name;
-		switch (role) {
-			case 1:
-				badge.classList.add("badge-warning");
+		badge.textContent = this.states.find(r => r.id == state)?.name;
+		switch (state) {
+			case Table.Available:
+				badge.classList.add("badge-success");
 				break;
-			case 2:
+			case Table.Waiting:
+				badge.classList.add("badge-danger");
+				break;
+			case Table.Served:
 				badge.classList.add("badge-info");
 				break;
-			default:
-				badge.classList.add("badge-secondary");
+			case Table.Paying:
+				badge.classList.add("badge-warning");
 				break;
 		}
 		return badge;

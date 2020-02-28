@@ -95,6 +95,19 @@ body {
 
 		&.active {
 			transform: translateX(0%);
+			box-shadow: 5px 0px 20px 0px rgba(0, 0, 0, 0.075);
 		}
 	}
+}
+
+#overlay {
+	content: "";
+	position: absolute;
+	z-index: 990;
+	background: rgba(255, 255, 255, 0.5);
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	display: none;
 }

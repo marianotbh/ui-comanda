@@ -1,3 +1,5 @@
+import { Detail } from "./detail";
+
 export class Order {
 	code: string;
 	state: number;
@@ -6,6 +8,7 @@ export class Order {
 	createdAt: string;
 	updatedAt: string;
 	removedAt: string;
+	detail: Detail[];
 
 	static Pending = 0;
 	static Preparing = 1;
