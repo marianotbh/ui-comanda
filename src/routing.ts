@@ -1,4 +1,4 @@
-import { Router, Redirect } from "core";
+import { Router, Redirect, block } from "core";
 import {
 	DashboardController,
 	LoginController,
@@ -96,6 +96,7 @@ if (Session.isAdmin() || Session.isManager()) {
 }
 
 router.onChange = () => {
+	block(main, "Loading...");
 	return new Promise(resolve => {
 		$(main).fadeOut(200, () => resolve());
 	});
@@ -103,7 +104,10 @@ router.onChange = () => {
 
 router.onReady = () => {
 	return new Promise(resolve => {
-		$(main).fadeIn(300, () => resolve());
+		$(main).fadeIn(300, () => {
+			$(main).unblock();
+			resolve();
+		});
 	});
 };
 

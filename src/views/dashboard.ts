@@ -1,6 +1,7 @@
 import { Controller } from "core";
 import { User } from "src/classes/user";
-import api from "../provider";
+import cover from "../assets/img/cover.jpg";
+import "./dashboard.scss";
 
 export class DashboardController extends Controller {
 	private currentUser: User;
@@ -11,9 +12,24 @@ export class DashboardController extends Controller {
 	}
 
 	async onInit() {
-		const { data, total } = await api.list<User>("users", {
-			pagination: { length: 10, page: 1 },
-			sort: { field: "createdAt", order: "ASC" }
-		});
+		const placeholder = document.querySelector<HTMLSpanElement>("#name-placeholder");
+		const wrapper = document.querySelector<HTMLDivElement>("#wrapper");
+
+		placeholder.textContent = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
+		wrapper.style.backgroundImage = `url(${cover})`;
+		$(wrapper).animate(
+			{
+				opacity: 1
+			},
+			1000,
+			() => {
+				$("#wrapper .shadowed-text > *").animate(
+					{
+						opacity: 1
+					},
+					500
+				);
+			}
+		);
 	}
 }

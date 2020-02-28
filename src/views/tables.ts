@@ -1,9 +1,10 @@
 import { Controller, block } from "core";
-import { Table, State } from "src/classes";
+import { Table, State, Role } from "src/classes";
 import { setValidity, toaster, modal } from "src/elements/bootstrap";
 import api from "../provider";
 import * as moment from "moment";
 import "./tables.scss";
+import { Session } from "src/session";
 
 export class TablesController extends Controller {
 	private tables: Table[];
@@ -42,6 +43,10 @@ export class TablesController extends Controller {
 				}
 			}
 		});
+
+		if (!Session.isAdmin() && !Session.isManager() && Session.getRole() !== Role.Floor) {
+			$("#new-btn").hide();
+		}
 
 		$("#capacity").on("input change", (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
 			$("#capacity-value").text(ev.target.value);
@@ -175,61 +180,67 @@ export class TablesController extends Controller {
 	};
 
 	promptNew = () => {
-		this.editMode = false;
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+			this.editMode = false;
 
-		$(this.modal)
-			.find(".modal-title")
-			.text("Add a table");
+			$(this.modal)
+				.find(".modal-title")
+				.text("Add a table");
 
-		$(this.form)
-			.find("#state")
-			.parents(".form-group")
-			.hide();
+			$(this.form)
+				.find("#state")
+				.parents(".form-group")
+				.hide();
 
-		$("#delete").hide();
+			$("#delete").hide();
 
-		this.show();
+			this.show();
+		}
 	};
 
 	promptEdit = (table: Table) => {
-		this.editMode = true;
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+			this.editMode = true;
 
-		const form = $(this.form);
-		form.find("#code").val(table.code);
-		form.find("#capacity").val(table.capacity);
-		form.find("#state").val(table.state);
+			const form = $(this.form);
+			form.find("#code").val(table.code);
+			form.find("#capacity").val(table.capacity);
+			form.find("#state").val(table.state);
 
-		$(this.form)
-			.find("#state")
-			.parents(".form-group")
-			.show();
+			$(this.form)
+				.find("#state")
+				.parents(".form-group")
+				.show();
 
-		$("#delete").show();
+			$("#delete").show();
 
-		$(this.modal)
-			.find(".modal-title")
-			.text("Edit table");
+			$(this.modal)
+				.find(".modal-title")
+				.text("Edit table");
 
-		this.show();
+			this.show();
+		}
 	};
 
 	promptDelete = () => {
-		modal({
-			title: "Wait a minute!",
-			body: "Are you sure you want to delete this item?",
-			style: "warning"
-		}).then(() => {
-			api
-				.delete("tables", document.querySelector<HTMLInputElement>("#code").value)
-				.then(({ message }) => {
-					toaster(message, "success");
-					this.getTables();
-					this.hide();
-				})
-				.catch(({ message }) => {
-					toaster(message, "danger");
-				});
-		});
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+			modal({
+				title: "Wait a minute!",
+				body: "Are you sure you want to delete this item?",
+				style: "warning"
+			}).then(() => {
+				api
+					.delete("tables", document.querySelector<HTMLInputElement>("#code").value)
+					.then(({ message }) => {
+						toaster(message, "success");
+						this.getTables();
+						this.hide();
+					})
+					.catch(({ message }) => {
+						toaster(message, "danger");
+					});
+			});
+		}
 	};
 
 	private show() {

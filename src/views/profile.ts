@@ -1,12 +1,23 @@
 import { Controller } from "core";
+import { User } from "src/classes";
+import { Session } from "src/session";
 
 export class ProfileController extends Controller {
-	private username: string;
+	private user: User;
 
-	constructor({ username }) {
+	constructor({ profile }) {
 		super();
-		this.username = username;
+		this.user = profile;
 	}
 
-	async onInit() {}
+	async onInit() {
+		if (this.user) {
+			const name = $("#name-placeholder");
+			if (Session.get().payload.id == this.user.id) {
+				name.text("My ");
+			} else {
+				name.text(`${this.user.name}'s `);
+			}
+		}
+	}
 }

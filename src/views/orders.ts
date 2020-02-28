@@ -1,12 +1,14 @@
 import { Controller, block } from "core";
-import { Order, User, Table, Role, State, Menu } from "src/classes";
+import { Order, User, Table, Role, State, Menu, Detail } from "src/classes";
 import { setValidity, toaster, modal } from "src/elements/bootstrap";
 import api from "../provider";
 import * as moment from "moment";
 import "./orders.scss";
+import { Session } from "src/session";
 
 export class OrdersController extends Controller {
 	private list: HTMLElement;
+	private details: HTMLElement;
 	private form: HTMLFormElement;
 	private modal: HTMLElement;
 	private selected: Order;
@@ -27,6 +29,8 @@ export class OrdersController extends Controller {
 		$(this.modal).on("hidden.bs.modal", () => {
 			this.form.reset();
 			this.form.classList.replace("was-validated", "needs-validation");
+			$("#detail-list").html(null);
+			$("#details").html(null);
 			this.selected = null;
 		});
 
@@ -46,6 +50,8 @@ export class OrdersController extends Controller {
 				}
 			}
 		});
+
+		this.details = document.querySelector("#detail-list");
 
 		await this.getStates();
 		await this.getOrders();
@@ -136,7 +142,20 @@ export class OrdersController extends Controller {
 			.then(({ data, total }) => {
 				this.orders = data;
 				if (this.orders.length) {
-					this.list.append(...this.orders.map(this.mapOrder));
+					if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+						this.list.append(...this.orders.map(this.mapOrder));
+					} else {
+						this.list.append(
+							...this.orders
+								.filter(
+									o =>
+										o.detail.filter(
+											d => this.menu.find(m => m.id === d.menu).role === Session.getRole()
+										).length
+								)
+								.map(this.mapOrder)
+						);
+					}
 					this.list.append();
 				} else {
 					this.list.innerHTML = `
@@ -192,7 +211,18 @@ export class OrdersController extends Controller {
 				hideable: false
 			});
 		} else {
-			this.mapDetail(parseInt(menu.value), parseInt(amount.value));
+			let detail = Array.from(document.querySelectorAll("#detail-list .detail-item")).find(
+				item => parseInt(item.id) === parseInt(menu.value)
+			);
+			if (detail) {
+				const currentAmount = detail.querySelector<HTMLInputElement>(".amount");
+				currentAmount.value = (parseInt(currentAmount.value) + parseInt(amount.value)).toString();
+			} else {
+				let detail = new Detail();
+				detail.menu = parseInt(menu.value);
+				detail.amount = parseInt(amount.value);
+				$("#detail-list").append(this.mapDetail(detail));
+			}
 		}
 	};
 
@@ -235,17 +265,10 @@ export class OrdersController extends Controller {
 			setValidity(table, "Table code is invalid");
 		else setValidity(table, true);
 
-		if (!user.value) setValidity(user, "This field is required");
-		else if (this.users.map(u => u.id).indexOf(parseInt(user.value)) === -1)
+		//if (!user.value) setValidity(user, "This field is required");
+		if (user.value && this.users.map(u => u.id).indexOf(parseInt(user.value)) === -1)
 			setValidity(user, "User selected is invalid");
 		else setValidity(user, true);
-
-		if (this.selected) {
-			if (!state.value) setValidity(state, "This field is required");
-			else if (this.states.map(s => s.id).indexOf(parseInt(state.value)) === -1)
-				setValidity(state, "State is not a valid value");
-			else setValidity(state, true);
-		}
 
 		this.form.classList.replace("needs-validation", "was-validated");
 
@@ -255,6 +278,7 @@ export class OrdersController extends Controller {
 				api
 					.put("orders", this.selected.code, {
 						detail: detail.map(d => ({
+							id: parseInt(d.querySelector<HTMLInputElement>(".hidden-id").value ?? "-1"),
 							menu: parseInt(d.id),
 							amount: parseInt(d.querySelector<HTMLInputElement>(".amount").value)
 						})),
@@ -315,23 +339,26 @@ export class OrdersController extends Controller {
 	};
 
 	promptEdit = () => {
-		const form = $(this.form);
-		form.find("#capacity").val(this.selected.user);
-		form.find("#capacity").val(this.selected.table);
-		form.find("#state").val(this.selected.state);
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+			const form = $(this.form);
+			form.find("#table").val(this.selected.table);
+			form.find("#state").val(this.selected.state);
+			form.find("#user").val(this.selected.user ?? undefined);
+			form.find("#detail-list").append(this.selected.detail.map(this.mapDetail));
 
-		$(this.form)
-			.find("#state")
-			.parents(".form-group")
-			.show();
+			$(this.form)
+				.find("#state")
+				.parents(".form-group")
+				.show();
 
-		$("#delete").show();
+			$("#delete").show();
 
-		$(this.modal)
-			.find(".modal-title")
-			.text("Edit order");
+			$(this.modal)
+				.find(".modal-title")
+				.text("Edit order");
 
-		this.show();
+			this.show();
+		}
 	};
 
 	promptDelete = () => {
@@ -374,47 +401,72 @@ export class OrdersController extends Controller {
 		el.style.padding = ".5rem";
 		el.style.marginTop = ".5rem";
 		el.innerHTML = `
-            <div class="mr-3"><i class="fas fa-order-circle" style="font-size: 2rem;"></i></div>
-            <div>
-                <div>
-                    <b class="mr-2">${order.code}</b>${this.toBadge(order.state).outerHTML}
-                </div>
+			<div class="align-self-start">
+				<b class="mr-2">${order.code}</b>${this.toBadge(order.state).outerHTML}
 				<small>${order.updatedAt ? moment(order.updatedAt).fromNow() : ""}</small>
-            </div>
-        `;
+			</div>
+			<div id="details" class="w-100">
+			</div>
+		`;
+		$(el)
+			.find("#details")
+			.append(
+				order.detail
+					.filter(d => this.menu.find(m => m.id === d.menu).role === Session.getRole())
+					.map(this.mapDetailAssignable)
+			);
 		return el;
 	};
 
-	private mapDetail = (menuId: number, amount: number) => {
-		const el =
-			Array.from(document.querySelectorAll("#detail-list .detail-item")).find(
-				item => parseInt(item.id) === menuId
-			) ?? document.createElement("div");
-		if (el.id) {
-			const currentAmount = el.querySelector<HTMLInputElement>(".amount");
-			currentAmount.value = (parseInt(currentAmount.value) + amount).toString();
-		} else {
-			el.id = menuId.toString();
-			el.className = "detail-item";
-			el.innerHTML = `
-					<div>
-						<b>${this.menu.find(m => m.id === menuId).name}</b>
-						<i class="fas fa-times font-weight-bold text-warning ml-2 mr-1"></i>
-						<input type="number" value=${amount} class="amount" readonly />
-					</div>
-					<div>
-						<button type="button" class="btn btn-white delete">
-							<i class="fas fa-times font-weight-bold"></i>
-						</button>
-					</div>
-				`;
-			$("#detail-list").append(el);
-			$(el)
-				.find(".delete")
-				.click(() => {
-					el.parentElement.removeChild(el);
-				});
-		}
+	private mapDetailAssignable = (detail: Detail) => {
+		const el = document.createElement("div");
+		el.id = detail.menu.toString();
+		el.className = "detail-item d-flex justify-content-between";
+		el.innerHTML = `
+			<input type="text" class="hidden-id d-none" />
+			<div>
+				<b>${this.menu.find(m => m.id === detail.menu).name}</b>
+				<i class="fas fa-times font-weight-bold text-warning ml-2 mr-1"></i>
+				<span>${detail.amount}</span>
+			</div>
+			<div>
+				<button type="button" class="btn btn-success btn-sm take">
+					Take order
+					<i class="fas fa-check-circle font-weight-bold"></i>
+				</button>
+			</div>
+		`;
+		$(el)
+			.find(".take")
+			.click(() => {
+				alert("Not implemeted yet");
+			});
+		return el;
+	};
+
+	private mapDetail = (detail: Detail) => {
+		const el = document.createElement("div");
+		el.id = detail.menu.toString();
+		el.className = "detail-item";
+		el.innerHTML = `
+			<input type="text" class="hidden-id d-none" />
+			<div>
+				<b>${this.menu.find(m => m.id === detail.menu).name}</b>
+				<i class="fas fa-times font-weight-bold text-warning ml-2 mr-1"></i>
+				<input type="number" value=${detail.amount} class="amount" readonly />
+			</div>
+			<div>
+				<button type="button" class="btn btn-white delete">
+					<i class="fas fa-times font-weight-bold"></i>
+				</button>
+			</div>
+		`;
+		$(el)
+			.find(".delete")
+			.click(() => {
+				el.parentElement.removeChild(el);
+			});
+		return el;
 	};
 
 	private toBadge = (role: number) => {

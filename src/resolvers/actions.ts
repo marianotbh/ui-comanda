@@ -61,9 +61,7 @@ export class ActionsResolver extends Resolver {
 				};
 
 				if (!sidebar.html().length) {
-					if (Session.isAdmin() || Session.isManager()) {
-						sidebar.append(createAction("📊 Dashboard", "/"));
-					}
+					sidebar.append(createAction("📊 Dashboard", "/"));
 
 					sidebar.append(
 						createAction("🙋‍♂️ Orders", "/orders"),

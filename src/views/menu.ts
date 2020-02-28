@@ -4,6 +4,7 @@ import { Menu, Role } from "src/classes";
 import api from "../provider";
 import * as moment from "moment";
 import "./menu.scss";
+import { Session } from "src/session";
 
 export class MenuController extends Controller {
 	private menu: Menu[];
@@ -40,6 +41,10 @@ export class MenuController extends Controller {
 				}
 			}
 		});
+
+		if (!Session.isAdmin() && !Session.isManager() && Session.getRole() !== Role.Kitchen) {
+			$("#new-btn").hide();
+		}
 
 		$("#stock").on("input change", (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
 			$("#stock-value").text(ev.target.value);
@@ -122,137 +127,145 @@ export class MenuController extends Controller {
 	}
 
 	promptAdd = () => {
-		$(this.modal)
-			.find(".modal-title")
-			.text("Add a new item to our menu");
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+			$(this.modal)
+				.find(".modal-title")
+				.text("Add a new item to our menu");
 
-		$("#delete").hide();
+			$("#delete").hide();
 
-		this.show();
+			this.show();
+		}
 	};
 
 	promptEdit = (menu: Menu) => {
-		const form = $(this.form);
-		form.find("#menu-id").val(menu.id);
-		form.find("#name").val(menu.name);
-		form.find("#description").val(menu.description);
-		form.find("#price").val(menu.price);
-		form.find("#stock").val(menu.stock);
-		form.find("#role").val(menu.role);
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+			const form = $(this.form);
+			form.find("#menu-id").val(menu.id);
+			form.find("#name").val(menu.name);
+			form.find("#description").val(menu.description);
+			form.find("#price").val(menu.price);
+			form.find("#stock").val(menu.stock);
+			form.find("#role").val(menu.role);
 
-		$("#delete").show();
+			$("#delete").show();
 
-		$(this.modal)
-			.find(".modal-title")
-			.text("Edit this item");
+			$(this.modal)
+				.find(".modal-title")
+				.text("Edit this item");
 
-		this.show();
+			this.show();
+		}
 	};
 
 	promptDelete = () => {
-		modal({
-			title: "Wait a minute!",
-			body: "Are you sure you want to delete this item?",
-			style: "warning"
-		}).then(() => {
-			api
-				.delete("menu", parseInt(document.querySelector<HTMLInputElement>("#menu-id").value))
-				.then(({ message }) => {
-					toaster(message, "success");
-					this.getMenu();
-					this.hide();
-				})
-				.catch(({ message }) => {
-					toaster(message, "danger");
-				});
-		});
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+			modal({
+				title: "Wait a minute!",
+				body: "Are you sure you want to delete this item?",
+				style: "warning"
+			}).then(() => {
+				api
+					.delete("menu", parseInt(document.querySelector<HTMLInputElement>("#menu-id").value))
+					.then(({ message }) => {
+						toaster(message, "success");
+						this.getMenu();
+						this.hide();
+					})
+					.catch(({ message }) => {
+						toaster(message, "danger");
+					});
+			});
+		}
 	};
 
 	save = (ev: Event) => {
-		ev.preventDefault();
-		ev.stopPropagation();
+		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+			ev.preventDefault();
+			ev.stopPropagation();
 
-		const id = document.querySelector<HTMLInputElement>("#menu-id");
-		const name = document.querySelector<HTMLInputElement>("#name");
-		const description = document.querySelector<HTMLInputElement>("#description");
-		const price = document.querySelector<HTMLInputElement>("#price");
-		const stock = document.querySelector<HTMLInputElement>("#stock");
-		const role = document.querySelector<HTMLSelectElement>("#role");
+			const id = document.querySelector<HTMLInputElement>("#menu-id");
+			const name = document.querySelector<HTMLInputElement>("#name");
+			const description = document.querySelector<HTMLInputElement>("#description");
+			const price = document.querySelector<HTMLInputElement>("#price");
+			const stock = document.querySelector<HTMLInputElement>("#stock");
+			const role = document.querySelector<HTMLSelectElement>("#role");
 
-		if (!name.value) setValidity(name, "This field is required");
-		else if (name.value.length < 5) setValidity(name, "Name must be at least 3 characters long");
-		else setValidity(name, true);
+			if (!name.value) setValidity(name, "This field is required");
+			else if (name.value.length < 5) setValidity(name, "Name must be at least 3 characters long");
+			else setValidity(name, true);
 
-		if (!description.value) setValidity(description, "This field is required");
-		else if (description.value.length < 5)
-			setValidity(description, "Description should be at least 10 characters long");
-		else if (description.value.length > 255)
-			setValidity(description, "Description can't exceed 255 characters");
-		else setValidity(description, true);
+			if (!description.value) setValidity(description, "This field is required");
+			else if (description.value.length < 5)
+				setValidity(description, "Description should be at least 10 characters long");
+			else if (description.value.length > 255)
+				setValidity(description, "Description can't exceed 255 characters");
+			else setValidity(description, true);
 
-		if (!price.value) setValidity(price, "This field is required");
-		else if (isNaN(parseFloat(price.value))) setValidity(price, "Price is not a valid number");
-		else setValidity(price, true);
+			if (!price.value) setValidity(price, "This field is required");
+			else if (isNaN(parseFloat(price.value))) setValidity(price, "Price is not a valid number");
+			else setValidity(price, true);
 
-		if (!stock.value) setValidity(stock, "This field is required");
-		else if (
-			isNaN(parseInt(stock.value)) ||
-			parseInt(stock.value) < 0 ||
-			parseInt(stock.value) > 100
-		)
-			setValidity(stock, "Stock is not a valid number between 1 and 100");
-		else setValidity(stock, true);
+			if (!stock.value) setValidity(stock, "This field is required");
+			else if (
+				isNaN(parseInt(stock.value)) ||
+				parseInt(stock.value) < 0 ||
+				parseInt(stock.value) > 100
+			)
+				setValidity(stock, "Stock is not a valid number between 1 and 100");
+			else setValidity(stock, true);
 
-		if (!role.value) setValidity(role, "This field is required");
-		else if (this.roles.map(x => x.id).indexOf(parseInt(role.value)) === -1)
-			setValidity(role, "Value of role is not in the list");
-		else setValidity(role, true);
+			if (!role.value) setValidity(role, "This field is required");
+			else if (this.roles.map(x => x.id).indexOf(parseInt(role.value)) === -1)
+				setValidity(role, "Value of role is not in the list");
+			else setValidity(role, true);
 
-		this.form.classList.replace("needs-validation", "was-validated");
+			this.form.classList.replace("needs-validation", "was-validated");
 
-		if (this.form.checkValidity()) {
-			if (id.value) {
-				const ref = block(this.form, "Saving changes...");
-				api
-					.put("menu", parseInt(id.value), {
-						name: name.value,
-						description: description.value,
-						price: parseFloat(price.value),
-						stock: parseInt(stock.value),
-						role: parseInt(role.value)
-					})
-					.then(async ({ message }) => {
-						toaster(message, "success");
-						this.getMenu();
-						this.hide();
-					})
-					.catch(({ message }) => {
-						toaster(message, "danger");
-					})
-					.finally(() => {
-						ref.unblock();
-					});
-			} else {
-				const ref = block(this.form, "Creating item...");
-				api
-					.post("menu", {
-						name: name.value,
-						description: description.value,
-						price: parseFloat(price.value),
-						stock: parseInt(stock.value),
-						role: parseInt(role.value)
-					})
-					.then(async ({ message }) => {
-						toaster(message, "success");
-						this.getMenu();
-						this.hide();
-					})
-					.catch(({ message }) => {
-						toaster(message, "danger");
-					})
-					.finally(() => {
-						ref.unblock();
-					});
+			if (this.form.checkValidity()) {
+				if (id.value) {
+					const ref = block(this.form, "Saving changes...");
+					api
+						.put("menu", parseInt(id.value), {
+							name: name.value,
+							description: description.value,
+							price: parseFloat(price.value),
+							stock: parseInt(stock.value),
+							role: parseInt(role.value)
+						})
+						.then(async ({ message }) => {
+							toaster(message, "success");
+							this.getMenu();
+							this.hide();
+						})
+						.catch(({ message }) => {
+							toaster(message, "danger");
+						})
+						.finally(() => {
+							ref.unblock();
+						});
+				} else {
+					const ref = block(this.form, "Creating item...");
+					api
+						.post("menu", {
+							name: name.value,
+							description: description.value,
+							price: parseFloat(price.value),
+							stock: parseInt(stock.value),
+							role: parseInt(role.value)
+						})
+						.then(async ({ message }) => {
+							toaster(message, "success");
+							this.getMenu();
+							this.hide();
+						})
+						.catch(({ message }) => {
+							toaster(message, "danger");
+						})
+						.finally(() => {
+							ref.unblock();
+						});
+				}
 			}
 		}
 	};
