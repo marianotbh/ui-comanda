@@ -17,7 +17,7 @@ import {
 	PrefetchResolver,
 	ProfileResolver
 } from "./resolvers";
-import { Session } from "./session";
+import { AppSession } from "./session";
 
 const main = document.getElementById("root");
 
@@ -89,7 +89,7 @@ router
 		...resolve("not-found")
 	});
 
-if (Session.isAdmin() || Session.isManager()) {
+if (AppSession.isAdmin() || AppSession.isManager()) {
 	router.add("reviews", {
 		path: "/reviews",
 		controller: ReviewsController,
@@ -121,4 +121,4 @@ router.onRejected = () => {
 	return Redirect.to("403");
 };
 
-export default router;
+export { router as AppRouter };

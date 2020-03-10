@@ -2,9 +2,9 @@ import * as decode from "jwt-decode";
 import { TokenDTO } from "./token-dto";
 
 export class Session<T = any> {
+	private token: TokenDTO<T>;
 	private storage: Storage;
 	private key: string;
-	private current: TokenDTO<T>;
 
 	constructor(storage: Storage, key: string = "token") {
 		this.storage = storage;
@@ -28,20 +28,20 @@ export class Session<T = any> {
 			this.refresh();
 		}
 
-		return this.current != null;
+		return this.token != null;
 	}
 
-	get(refresh = false): TokenDTO<T> {
-		if (refresh || this.current == null) {
+	current(refresh = false): TokenDTO<T> {
+		if (refresh || this.token == null) {
 			this.refresh();
 		}
 
-		return this.current;
+		return this.token;
 	}
 
 	private refresh() {
 		const { storage, key } = this;
-		this.current = key in storage ? decode<TokenDTO<T>>(storage[key]) : null;
+		this.token = key in storage ? decode<TokenDTO<T>>(storage[key]) : null;
 	}
 
 	end() {

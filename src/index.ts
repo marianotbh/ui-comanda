@@ -1,7 +1,7 @@
 import "./setup";
 import "./styles.scss";
-import router from "./routing";
-import { Session } from "./session";
+import { AppSession } from "./session";
+import { AppRouter } from "./routing";
 
 $(document).ready(async () => {
 	$("#navbar").animate(
@@ -11,8 +11,8 @@ $(document).ready(async () => {
 		550
 	);
 
-	Session.begin();
-	await router.start();
+	AppSession.begin();
+	await AppRouter.start();
 
 	setTimeout(() => {
 		$("footer").animate(

@@ -1,21 +1,18 @@
 import { Controller } from "core";
 import { User } from "src/classes/user";
+import { AppSession } from "src/session";
+import api from "../provider";
 import cover from "../assets/img/cover.jpg";
 import "./dashboard.scss";
 
 export class DashboardController extends Controller {
-	private currentUser: User;
-
-	constructor({ user }) {
-		super();
-		this.currentUser = user;
-	}
-
 	async onInit() {
+		const currentUser = await api.get<User>("users", AppSession.current().payload.username);
+
 		const wrapper = document.getElementById("wrapper");
 		const placeholder = document.getElementById("name-placeholder");
 
-		placeholder.textContent = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
+		placeholder.textContent = `${currentUser.firstName} ${currentUser.lastName}`;
 		wrapper.style.backgroundImage = `url(${cover})`;
 		$(wrapper).animate(
 			{

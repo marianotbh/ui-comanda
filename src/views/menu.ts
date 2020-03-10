@@ -4,7 +4,7 @@ import { Menu, Role } from "src/classes";
 import api from "../provider";
 import * as moment from "moment";
 import "./menu.scss";
-import { Session } from "src/session";
+import { AppSession } from "src/session";
 
 export class MenuController extends Controller {
 	private menu: Menu[];
@@ -42,7 +42,7 @@ export class MenuController extends Controller {
 			}
 		});
 
-		if (!Session.isAdmin() && !Session.isManager() && Session.getRole() !== Role.Kitchen) {
+		if (!AppSession.isAdmin() && !AppSession.isManager() && AppSession.getRole() !== Role.Kitchen) {
 			$("#new-btn").hide();
 		}
 
@@ -127,7 +127,7 @@ export class MenuController extends Controller {
 	}
 
 	promptAdd = () => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Kitchen) {
 			$(this.modal)
 				.find(".modal-title")
 				.text("Add a new item to our menu");
@@ -139,7 +139,7 @@ export class MenuController extends Controller {
 	};
 
 	promptEdit = (menu: Menu) => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Kitchen) {
 			const form = $(this.form);
 			form.find("#menu-id").val(menu.id);
 			form.find("#name").val(menu.name);
@@ -159,7 +159,7 @@ export class MenuController extends Controller {
 	};
 
 	promptDelete = () => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Kitchen) {
 			modal({
 				title: "Wait a minute!",
 				body: "Are you sure you want to delete this item?",
@@ -180,7 +180,7 @@ export class MenuController extends Controller {
 	};
 
 	save = (ev: Event) => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Kitchen) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Kitchen) {
 			ev.preventDefault();
 			ev.stopPropagation();
 

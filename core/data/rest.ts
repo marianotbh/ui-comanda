@@ -27,8 +27,13 @@ export class RestProvider implements IProvider {
 		this.client = client;
 	}
 
-	async get<T = any>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
-		const url = `${this.endpoint}/${resource}/${id}`;
+	async get<T = any>(resource: string, id?: ID, options: IOptions = {}): Promise<T> {
+		let url = `${this.endpoint}/${resource}`;
+
+		if (id) {
+			url += `/${id}`;
+		}
+
 		const { json } = await this.client<T>(url, options);
 		return json;
 	}

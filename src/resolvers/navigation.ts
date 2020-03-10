@@ -1,11 +1,11 @@
 import { Resolver } from "core";
-import { Session } from "src/session";
+import { AppSession } from "src/session";
 import { withClass } from "src/elements/bootstrap/utils";
 
 export class NavigationResolver extends Resolver {
 	async resolve(): Promise<void> {
 		const navbar = $("#navbar");
-		if (Session.online) {
+		if (AppSession.online) {
 			if (navbar.find(".dropdown") != null) {
 				navbar.find(".navbar-nav").html(`
 					<li class="nav-item dropdown">
@@ -18,7 +18,7 @@ export class NavigationResolver extends Resolver {
 							aria-haspopup="true"
 							aria-expanded="false"
 						>
-							<b style="font-size:1.25rem">${Session.get().payload.name.toLowerCase()}</b>	
+							<b style="font-size:1.25rem">${AppSession.current().payload.username.toLowerCase()}</b>	
 							<i class="fas fa-user-circle ml-2" style="font-size:1.75rem" aria-hidden="true"></i>
 							<i class="fa fa-chevron-down ml-2" style="font-size:1rem" aria-hidden="true"></i>
 						</a>
@@ -26,11 +26,14 @@ export class NavigationResolver extends Resolver {
 					</li>
 				`);
 				navbar.find(".dropdown-menu").append(
-					createAction("Profile", () => (location.hash = `profile/${Session.get().payload.name}`)),
+					createAction(
+						"Profile",
+						() => (location.hash = `profile/${AppSession.current().payload.username}`)
+					),
 					createAction("Settings", () => (location.hash = "settings")),
 					withClass("dropdown-divider")(document.createElement("div")),
 					createAction("Logout", () => {
-						Session.end();
+						AppSession.end();
 						location.reload();
 					})
 				);

@@ -1,6 +1,6 @@
 import { Resolver } from "core";
-import { Session } from "src/session";
-import router from "../routing";
+import { AppSession } from "src/session";
+import { AppRouter } from "src/routing";
 
 const cleanHash = () => {
 	const hash = location.hash.replace(/[\#]/g, "");
@@ -46,7 +46,7 @@ export class ActionsResolver extends Resolver {
 		const current = cleanHash();
 		return new Promise(async resolve => {
 			const sidebar = $("#sidebar");
-			if (Session.online && this.shouldShow(current)) {
+			if (AppSession.online && this.shouldShow(current)) {
 				$(".navbar-brand")[0].onclick = () => {
 					if (window.innerWidth <= 768) {
 						const sidebar = document.getElementById("sidebar");
@@ -69,7 +69,7 @@ export class ActionsResolver extends Resolver {
 						createAction("🍲 Menu", "/menu")
 					);
 
-					if (Session.isAdmin() || Session.isManager()) {
+					if (AppSession.isAdmin() || AppSession.isManager()) {
 						sidebar.append(
 							createAction("👥 Users", "/users"),
 							createAction("📝 Reviews", "/reviews")
@@ -85,7 +85,7 @@ export class ActionsResolver extends Resolver {
 					}
 				}
 
-				const match = router.find(location.hash);
+				const match = AppRouter.find(location.hash);
 				if (match) {
 					const [, route] = match;
 					const active = actions.find(a => route.matches(a.getAttribute("data-route")));
@@ -106,7 +106,7 @@ export class ActionsResolver extends Resolver {
 	}
 
 	private shouldShow(currentHash: string) {
-		const [name] = router.find(currentHash) ?? [];
+		const [name] = AppRouter.find(currentHash) ?? [];
 		return this.checkedRoutes.length || this.exceptedRoutes.length
 			? (this.checkedRoutes.length && this.checkedRoutes.indexOf(name) !== -1) ||
 					(this.exceptedRoutes.length && this.exceptedRoutes.indexOf(name) === -1)

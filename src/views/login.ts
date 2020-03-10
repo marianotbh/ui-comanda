@@ -1,7 +1,7 @@
 import { Controller } from "core";
 import { toaster, setValidity } from "src/elements/bootstrap";
 import { block } from "core/utils/block";
-import { Session } from "src/session";
+import { AppSession } from "src/session";
 import api from "../provider";
 
 export class LoginController extends Controller {
@@ -50,9 +50,8 @@ export class LoginController extends Controller {
 					remember: remember.checked
 				})
 				.then(async ({ token }) => {
-					Session.new(token);
-					const { firstName, lastName } = Session.get().payload;
-					await toaster(`Welcome back, ${firstName} ${lastName}`, "success");
+					AppSession.new(token);
+					await toaster(`Welcome back, ${AppSession.current().payload.username}`, "success");
 					location.hash = "/";
 				})
 				.catch(async ({ message }: { message: string }) => {

@@ -4,7 +4,7 @@ import { setValidity, toaster, modal } from "src/elements/bootstrap";
 import api from "../provider";
 import * as moment from "moment";
 import "./tables.scss";
-import { Session } from "src/session";
+import { AppSession } from "src/session";
 
 export class TablesController extends Controller {
 	private tables: Table[];
@@ -44,7 +44,7 @@ export class TablesController extends Controller {
 			}
 		});
 
-		if (!Session.isAdmin() && !Session.isManager() && Session.getRole() !== Role.Floor) {
+		if (!AppSession.isAdmin() && !AppSession.isManager() && AppSession.getRole() !== Role.Floor) {
 			$("#new-btn").hide();
 		}
 
@@ -180,7 +180,7 @@ export class TablesController extends Controller {
 	};
 
 	promptNew = () => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Floor) {
 			this.editMode = false;
 
 			$(this.modal)
@@ -199,7 +199,7 @@ export class TablesController extends Controller {
 	};
 
 	promptEdit = (table: Table) => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Floor) {
 			this.editMode = true;
 
 			const form = $(this.form);
@@ -223,7 +223,7 @@ export class TablesController extends Controller {
 	};
 
 	promptDelete = () => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Floor) {
 			modal({
 				title: "Wait a minute!",
 				body: "Are you sure you want to delete this item?",

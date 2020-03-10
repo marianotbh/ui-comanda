@@ -26,8 +26,8 @@ const httpClient = <T>(url: string, { method = "GET", body = "", ...rest } = {})
 				});
 			})
 			.fail((jqXHR: JQuery.jqXHR, status: string) => {
-				console.info(`[${method}] ${url} - ${status.toUpperCase()}`, jqXHR.responseJSON);
-				reject(jqXHR.responseJSON ? jqXHR.responseJSON : { message: jqXHR.responseText });
+				console.info(`[${method}] ${url} - ${status.toUpperCase()}`, jqXHR.statusText);
+				reject({ message: jqXHR.statusText });
 			});
 	});
 };

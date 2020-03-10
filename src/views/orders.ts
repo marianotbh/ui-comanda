@@ -1,10 +1,10 @@
 import { Controller, block } from "core";
 import { Order, User, Table, Role, State, Menu, Detail } from "src/classes";
 import { setValidity, toaster, modal } from "src/elements/bootstrap";
+import { AppSession } from "src/session";
 import api from "../provider";
 import * as moment from "moment";
 import "./orders.scss";
-import { Session } from "src/session";
 
 export class OrdersController extends Controller {
 	private list: HTMLElement;
@@ -142,7 +142,11 @@ export class OrdersController extends Controller {
 			.then(({ data, total }) => {
 				this.orders = data;
 				if (this.orders.length) {
-					if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+					if (
+						AppSession.isAdmin() ||
+						AppSession.isManager() ||
+						AppSession.getRole() === Role.Floor
+					) {
 						this.list.append(...this.orders.map(this.mapOrder));
 					} else {
 						this.list.append(
@@ -150,7 +154,7 @@ export class OrdersController extends Controller {
 								.filter(
 									o =>
 										o.detail.filter(
-											d => this.menu.find(m => m.id === d.menu).role === Session.getRole()
+											d => this.menu.find(m => m.id === d.menu).role === AppSession.getRole()
 										).length
 								)
 								.map(this.mapOrder)
@@ -344,7 +348,7 @@ export class OrdersController extends Controller {
 	};
 
 	promptEdit = () => {
-		if (Session.isAdmin() || Session.isManager() || Session.getRole() === Role.Floor) {
+		if (AppSession.isAdmin() || AppSession.isManager() || AppSession.getRole() === Role.Floor) {
 			const form = $(this.form);
 			form.find("#table").val(this.selected.table);
 			form.find("#state").val(this.selected.state);
@@ -417,7 +421,7 @@ export class OrdersController extends Controller {
 			.find("#details")
 			.append(
 				order.detail
-					.filter(d => this.menu.find(m => m.id === d.menu).role === Session.getRole())
+					.filter(d => this.menu.find(m => m.id === d.menu).role === AppSession.getRole())
 					.map(this.mapDetailAssignable)
 			);
 		return el;

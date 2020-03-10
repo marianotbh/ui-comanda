@@ -4,7 +4,7 @@ import { setValidity, toaster } from "src/elements/bootstrap";
 import api from "../provider";
 import * as moment from "moment";
 import "./users.scss";
-import { Session } from "src/session";
+import { AppSession } from "src/session";
 import { Role } from "src/classes";
 
 export class UsersController extends Controller {
@@ -68,7 +68,7 @@ export class UsersController extends Controller {
 			}
 		});
 
-		if (!Session.isAdmin() && !Session.isManager()) {
+		if (!AppSession.isAdmin() && !AppSession.isManager()) {
 			$("#new-btn").hide();
 		}
 
@@ -131,7 +131,7 @@ export class UsersController extends Controller {
 	}
 
 	save = (ev: Event) => {
-		if (Session.isAdmin() || Session.isManager()) {
+		if (AppSession.isAdmin() || AppSession.isManager()) {
 			ev.preventDefault();
 			ev.stopPropagation();
 
@@ -251,7 +251,7 @@ export class UsersController extends Controller {
 	};
 
 	promptNew = () => {
-		if (Session.isAdmin() || Session.isManager()) {
+		if (AppSession.isAdmin() || AppSession.isManager()) {
 			const form = $(this.form);
 			form.find("#username").prop("readonly", false);
 			form.find("#password").prop("readonly", false);
@@ -267,7 +267,7 @@ export class UsersController extends Controller {
 	};
 
 	promptEdit = (user: User) => {
-		if (Session.isAdmin() || Session.isManager()) {
+		if (AppSession.isAdmin() || AppSession.isManager()) {
 			const form = $(this.form);
 			form.find("#user-id").val(user.id);
 			form

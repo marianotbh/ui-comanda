@@ -1,10 +1,15 @@
 import { Session } from "core";
-import { User } from "./classes/user";
 
 const ADMIN = 1;
 const MANAGER = 2;
 
-class ComandaSession extends Session<User> {
+interface ComandaUser {
+	id: number;
+	username: string;
+	role: number;
+}
+
+class ComandaSession extends Session<ComandaUser> {
 	isAdmin() {
 		return this.getRole() === ADMIN;
 	}
@@ -14,10 +19,10 @@ class ComandaSession extends Session<User> {
 	}
 
 	getRole() {
-		return this.online ? this.get().payload.role : null;
+		return this.online ? this.current().payload.role : null;
 	}
 }
 
 const session = new ComandaSession(localStorage, "token");
 
-export { session as Session };
+export { session as AppSession };
