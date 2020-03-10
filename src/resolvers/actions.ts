@@ -49,7 +49,7 @@ export class ActionsResolver extends Resolver {
 			if (Session.online && this.shouldShow(current)) {
 				$(".navbar-brand")[0].onclick = () => {
 					if (window.innerWidth <= 768) {
-						const sidebar = document.getElementById("#sidebar");
+						const sidebar = document.getElementById("sidebar");
 						if (sidebar.classList.contains("active")) {
 							hideSidebar();
 						} else {

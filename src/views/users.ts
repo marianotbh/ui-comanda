@@ -19,19 +19,19 @@ export class UsersController extends Controller {
 	}
 
 	async onInit() {
-		this.form = <HTMLFormElement>document.getElementById("#user-form");
+		this.form = <HTMLFormElement>document.getElementById("user-form");
 		this.form.addEventListener("submit", this.save, false);
 		this.form.addEventListener("change", () => {
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		this.modal = <HTMLElement>document.getElementById("#user-modal");
+		this.modal = <HTMLElement>document.getElementById("user-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
 			this.form.reset();
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		this.list = <HTMLElement>document.getElementById("#user-list");
+		this.list = <HTMLElement>document.getElementById("user-list");
 		$(this.list).click(ev => {
 			const item =
 				ev.target && ev.target.matches(".user-item")
@@ -135,14 +135,14 @@ export class UsersController extends Controller {
 			ev.preventDefault();
 			ev.stopPropagation();
 
-			const id = <HTMLInputElement>document.getElementById("#user-id");
-			const username = <HTMLInputElement>document.getElementById("#username");
-			const password = <HTMLInputElement>document.getElementById("#password");
-			const passwordRepeat = <HTMLInputElement>document.getElementById("#password-repeat");
-			const firstName = <HTMLInputElement>document.getElementById("#first-name");
-			const lastName = <HTMLInputElement>document.getElementById("#last-name");
-			const email = <HTMLInputElement>document.getElementById("#email");
-			const role = <HTMLSelectElement>document.getElementById("#role");
+			const id = <HTMLInputElement>document.getElementById("user-id");
+			const username = <HTMLInputElement>document.getElementById("username");
+			const password = <HTMLInputElement>document.getElementById("password");
+			const passwordRepeat = <HTMLInputElement>document.getElementById("password-repeat");
+			const firstName = <HTMLInputElement>document.getElementById("first-name");
+			const lastName = <HTMLInputElement>document.getElementById("last-name");
+			const email = <HTMLInputElement>document.getElementById("email");
+			const role = <HTMLSelectElement>document.getElementById("role");
 
 			if (!id.value) {
 				if (!username.value) setValidity(username, "This field is required");

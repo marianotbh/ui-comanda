@@ -19,7 +19,7 @@ import {
 } from "./resolvers";
 import { Session } from "./session";
 
-const main = document.getElementById("#root");
+const main = document.getElementById("root");
 
 const router = new Router(main);
 

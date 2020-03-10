@@ -17,15 +17,15 @@ export class LoginController extends Controller {
 
 	async onInit() {
 		$("#sidebar").hide();
-		this.form = <HTMLFormElement>document.getElementById("#login");
+		this.form = <HTMLFormElement>document.getElementById("login");
 		this.form.addEventListener("submit", this.login, false);
 		this.form.addEventListener("change", () => {
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		this.username = <HTMLInputElement>document.getElementById("#username");
-		this.password = <HTMLInputElement>document.getElementById("#password");
-		this.remember = <HTMLInputElement>document.getElementById("#remember");
+		this.username = <HTMLInputElement>document.getElementById("username");
+		this.password = <HTMLInputElement>document.getElementById("password");
+		this.remember = <HTMLInputElement>document.getElementById("remember");
 	}
 
 	private async login(ev: Event) {

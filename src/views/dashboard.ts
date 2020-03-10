@@ -12,8 +12,8 @@ export class DashboardController extends Controller {
 	}
 
 	async onInit() {
-		const wrapper = document.getElementById("#wrapper");
-		const placeholder = document.getElementById("#name-placeholder");
+		const wrapper = document.getElementById("wrapper");
+		const placeholder = document.getElementById("name-placeholder");
 
 		placeholder.textContent = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
 		wrapper.style.backgroundImage = `url(${cover})`;
