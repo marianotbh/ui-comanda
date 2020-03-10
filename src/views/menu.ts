@@ -14,19 +14,19 @@ export class MenuController extends Controller {
 	private list: HTMLElement;
 
 	async onInit() {
-		this.form = document.querySelector("#menu-form");
+		this.form = <HTMLFormElement>document.getElementById("#menu-form");
 		this.form.addEventListener("submit", this.save, false);
 		this.form.addEventListener("change", () => {
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		this.modal = document.querySelector("#menu-modal");
+		this.modal = document.getElementById("#menu-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
 			this.form.reset();
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		this.list = document.querySelector("#menu-list");
+		this.list = document.getElementById("#menu-list");
 		$(this.list).click(ev => {
 			const item =
 				ev.target && ev.target.matches(".menu-item")
@@ -166,7 +166,7 @@ export class MenuController extends Controller {
 				style: "warning"
 			}).then(() => {
 				api
-					.delete("menu", parseInt(document.querySelector<HTMLInputElement>("#menu-id").value))
+					.delete("menu", parseInt((<HTMLInputElement>document.getElementById("#menu-id")).value))
 					.then(({ message }) => {
 						toaster(message, "success");
 						this.getMenu();
@@ -184,12 +184,12 @@ export class MenuController extends Controller {
 			ev.preventDefault();
 			ev.stopPropagation();
 
-			const id = document.querySelector<HTMLInputElement>("#menu-id");
-			const name = document.querySelector<HTMLInputElement>("#name");
-			const description = document.querySelector<HTMLInputElement>("#description");
-			const price = document.querySelector<HTMLInputElement>("#price");
-			const stock = document.querySelector<HTMLInputElement>("#stock");
-			const role = document.querySelector<HTMLSelectElement>("#role");
+			const id = <HTMLInputElement>document.getElementById("#menu-id");
+			const name = <HTMLInputElement>document.getElementById("#name");
+			const description = <HTMLInputElement>document.getElementById("#description");
+			const price = <HTMLInputElement>document.getElementById("#price");
+			const stock = <HTMLInputElement>document.getElementById("#stock");
+			const role = <HTMLSelectElement>document.getElementById("#role");
 
 			if (!name.value) setValidity(name, "This field is required");
 			else if (name.value.length < 5) setValidity(name, "Name must be at least 3 characters long");

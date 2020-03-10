@@ -27,7 +27,7 @@ export class RestProvider implements IProvider {
 		this.client = client;
 	}
 
-	async get<T>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
+	async get<T = any>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
 		const { json } = await this.client<T>(url, options);
 		return json;
@@ -65,7 +65,7 @@ export class RestProvider implements IProvider {
 		};
 	}
 
-	async post<T>(resource: string, data: object, options: IOptions = {}): Promise<T> {
+	async post<T = any>(resource: string, data: object, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}`;
 		const { json } = await this.client<T>(url, {
 			method: "POST",
@@ -74,7 +74,7 @@ export class RestProvider implements IProvider {
 		return { ...json };
 	}
 
-	async put<T>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
+	async put<T = any>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
 		const { json } = await this.client<T>(url, {
 			method: "PUT",
@@ -83,7 +83,7 @@ export class RestProvider implements IProvider {
 		return { ...json };
 	}
 
-	async patch<T>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
+	async patch<T = any>(resource: string, id: ID, data: object, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
 		const { json } = await this.client<T>(url, {
 			method: "PATCH",
@@ -92,7 +92,7 @@ export class RestProvider implements IProvider {
 		return { ...json };
 	}
 
-	async delete<T>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
+	async delete<T = any>(resource: string, id: ID, options: IOptions = {}): Promise<T> {
 		const url = `${this.endpoint}/${resource}/${id}`;
 		const { json } = await this.client<T>(url, {
 			method: "DELETE"

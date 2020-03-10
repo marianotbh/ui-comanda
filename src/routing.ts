@@ -19,11 +19,13 @@ import {
 } from "./resolvers";
 import { Session } from "./session";
 
-const main = document.querySelector<HTMLElement>("#root");
+const main = document.getElementById("#root");
 
 const router = new Router(main);
 
-const from = (name: string) => require(`./views/${name}.html`);
+const resolve = (name: string) => ({
+	template: require(`./views/${name}.html`)
+});
 
 router.use(AuthResolver);
 router.use(PrefetchResolver);
@@ -34,64 +36,64 @@ router
 	.add("dashboard", {
 		path: "/",
 		controller: DashboardController,
-		template: from("dashboard")
+		...resolve("dashboard")
 	})
 	.add("login", {
 		path: "/login",
 		controller: LoginController,
-		template: from("login"),
+		...resolve("login"),
 		resolver: false
 	})
 	.add("users", {
 		path: "/users",
 		controller: UsersController,
-		template: from("users")
+		...resolve("users")
 	})
 	.add("orders", {
 		path: "/orders",
 		controller: OrdersController,
-		template: from("orders")
+		...resolve("orders")
 	})
 	.add("tables", {
 		path: "/tables",
 		controller: TablesController,
-		template: from("tables")
+		...resolve("tables")
 	})
 	.add("menu", {
 		path: "/menu",
 		controller: MenuController,
-		template: from("menu")
+		...resolve("menu")
 	})
 	.add("reviews", {
 		path: "/reviews",
 		controller: ReviewsController,
-		template: from("reviews")
+		...resolve("reviews")
 	})
 	.add("profile", {
 		path: "/profile/{username}",
 		controller: ProfileController,
-		template: from("profile"),
+		...resolve("profile"),
 		resolver: ProfileResolver
 	})
 	.add("settings", {
 		path: "/settings",
 		controller: SettingsController,
-		template: from("settings")
+		...resolve("settings")
 	})
 	.add("403", {
 		path: "/403",
-		template: from("not-authorized")
+		...resolve("not-authorized")
 	})
 	.add("404", {
 		path: "/404",
-		template: from("not-found")
+		...resolve("not-found")
 	});
 
 if (Session.isAdmin() || Session.isManager()) {
 	router.add("reviews", {
 		path: "/reviews",
 		controller: ReviewsController,
-		template: from("reviews")
+		...resolve("reviews")
 	});
 }
 

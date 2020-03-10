@@ -23,7 +23,7 @@ export class ReviewsController extends Controller {
 	}
 
 	private async getReviews() {
-		const container = document.querySelector("#review-list");
+		const container = document.getElementById("#review-list");
 		const ref = block(container, "Loading...");
 		container.innerHTML = null;
 		return api

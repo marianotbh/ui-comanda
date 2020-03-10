@@ -19,13 +19,13 @@ export class OrdersController extends Controller {
 	private menu: Menu[];
 
 	async onInit() {
-		this.form = document.querySelector("#order-form");
+		this.form = <HTMLFormElement>document.getElementById("#order-form");
 		this.form.addEventListener("submit", this.save, false);
 		this.form.addEventListener("change", () => {
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		this.modal = document.querySelector("#order-modal");
+		this.modal = document.getElementById("#order-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
 			this.form.reset();
 			this.form.classList.replace("was-validated", "needs-validation");
@@ -34,7 +34,7 @@ export class OrdersController extends Controller {
 			this.selected = null;
 		});
 
-		this.list = document.querySelector("#order-list");
+		this.list = document.getElementById("#order-list");
 		$(this.list).click(ev => {
 			const item =
 				ev.target && ev.target.matches(".order-item")
@@ -51,7 +51,7 @@ export class OrdersController extends Controller {
 			}
 		});
 
-		this.details = document.querySelector("#detail-list");
+		this.details = document.getElementById("#detail-list");
 
 		await this.getStates();
 		await this.getOrders();
@@ -183,8 +183,8 @@ export class OrdersController extends Controller {
 	}
 
 	addDetail = () => {
-		const menu = document.querySelector<HTMLSelectElement>("#menu");
-		const amount = document.querySelector<HTMLSelectElement>("#amount");
+		const menu = <HTMLInputElement>document.getElementById("#menu");
+		const amount = <HTMLInputElement>document.getElementById("#amount");
 
 		if (!menu.value) {
 			modal({
@@ -211,11 +211,12 @@ export class OrdersController extends Controller {
 				hideable: false
 			});
 		} else {
-			let detail = Array.from(document.querySelectorAll("#detail-list .detail-item")).find(
-				item => parseInt(item.id) === parseInt(menu.value)
-			);
+			let detail = Array.from(
+				document.getElementById("#detail-list").getElementsByClassName(".detail-item")
+			).find(item => parseInt(item.id) === parseInt(menu.value));
+
 			if (detail) {
-				const currentAmount = detail.querySelector<HTMLInputElement>(".amount");
+				const currentAmount = <HTMLInputElement>detail.getElementsByClassName(".amount")[0];
 				currentAmount.value = (parseInt(currentAmount.value) + parseInt(amount.value)).toString();
 			} else {
 				let detail = new Detail();
@@ -230,12 +231,15 @@ export class OrdersController extends Controller {
 		ev.preventDefault();
 		ev.stopPropagation();
 
-		const detail = Array.from(document.querySelectorAll<HTMLElement>("#detail-list .detail-item"));
-		const menu = document.querySelector<HTMLInputElement>("#menu");
-		const amount = document.querySelector<HTMLInputElement>("#amount");
-		const table = document.querySelector<HTMLInputElement>("#table");
-		const state = document.querySelector<HTMLInputElement>("#state");
-		const user = document.querySelector<HTMLInputElement>("#user");
+		const detail = Array.from(
+			document.getElementById("#detail-list").getElementsByClassName(".detail-item")
+		);
+
+		const menu = <HTMLInputElement>document.getElementById("#menu");
+		const amount = <HTMLInputElement>document.getElementById("#amount");
+		const table = <HTMLInputElement>document.getElementById("#table");
+		const state = <HTMLInputElement>document.getElementById("#state");
+		const user = <HTMLInputElement>document.getElementById("#user");
 
 		if (detail.length === 0) {
 			setValidity(menu, "Select at least one item from the list");
@@ -243,7 +247,7 @@ export class OrdersController extends Controller {
 		} else if (
 			!detail.every(d => {
 				const menu = this.menu.find(m => m.id === parseInt(d.id));
-				const amount = d.querySelector<HTMLInputElement>(".amount");
+				const amount = <HTMLInputElement>d.getElementsByClassName(".amount")[0];
 				if (menu.stock < parseInt(amount.value)) {
 					setValidity(amount, "Ordered too many");
 					return false;
@@ -278,9 +282,10 @@ export class OrdersController extends Controller {
 				api
 					.put("orders", this.selected.code, {
 						detail: detail.map(d => ({
-							id: parseInt(d.querySelector<HTMLInputElement>(".hidden-id").value ?? "-1"),
+							id:
+								parseInt((<HTMLInputElement>d.getElementsByClassName(".hidden-id")[0]).value) || -1,
 							menu: parseInt(d.id),
-							amount: parseInt(d.querySelector<HTMLInputElement>(".amount").value)
+							amount: parseInt((<HTMLInputElement>d.getElementsByClassName(".amount")[0]).value)
 						})),
 						table: table.value,
 						state: parseInt(state.value),
@@ -303,7 +308,7 @@ export class OrdersController extends Controller {
 					.post("orders", {
 						detail: detail.map(d => ({
 							menu: parseInt(d.id),
-							amount: parseInt(d.querySelector<HTMLInputElement>(".amount").value)
+							amount: parseInt((<HTMLInputElement>d.getElementsByClassName(".amount")[0]).value)
 						})),
 						table: table.value,
 						user: user.value
@@ -368,7 +373,7 @@ export class OrdersController extends Controller {
 			style: "warning"
 		}).then(() => {
 			api
-				.delete("orders", document.querySelector<HTMLInputElement>("#code").value)
+				.delete("orders", (<HTMLInputElement>document.getElementById("#code")).value)
 				.then(({ message }) => {
 					toaster(message, "success");
 					this.getOrders();

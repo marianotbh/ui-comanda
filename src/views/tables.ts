@@ -15,20 +15,20 @@ export class TablesController extends Controller {
 	private editMode: boolean = false;
 
 	async onInit() {
-		this.form = document.querySelector("#table-form");
+		this.form = <HTMLFormElement>document.getElementById("#table-form");
 		this.form.addEventListener("submit", this.save, false);
 		this.form.addEventListener("change", () => {
 			this.form.classList.replace("was-validated", "needs-validation");
 		});
 
-		this.modal = document.querySelector("#table-modal");
+		this.modal = document.getElementById("#table-modal");
 		$(this.modal).on("hidden.bs.modal", () => {
 			this.form.reset();
 			this.form.classList.replace("was-validated", "needs-validation");
 			this.editMode = false;
 		});
 
-		this.list = document.querySelector("#table-list");
+		this.list = document.getElementById("#table-list");
 		$(this.list).click(ev => {
 			const item =
 				ev.target && ev.target.matches(".table-item")
@@ -73,7 +73,7 @@ export class TablesController extends Controller {
 	}
 
 	private async getTables() {
-		const container = document.querySelector("#table-list");
+		const container = document.getElementById("#table-list");
 		const ref = block(container, "Loading...");
 		container.innerHTML = null;
 		return api
@@ -115,9 +115,9 @@ export class TablesController extends Controller {
 		ev.preventDefault();
 		ev.stopPropagation();
 
-		const code = document.querySelector<HTMLInputElement>("#code");
-		const capacity = document.querySelector<HTMLInputElement>("#capacity");
-		const state = document.querySelector<HTMLInputElement>("#state");
+		const code = <HTMLInputElement>document.getElementById("#code");
+		const capacity = <HTMLInputElement>document.getElementById("#capacity");
+		const state = <HTMLInputElement>document.getElementById("#state");
 
 		if (!code.value) setValidity(code, "This field is required");
 		else if (code.value.length !== 5) setValidity(code, "Code must be 5 characters long");
@@ -230,7 +230,7 @@ export class TablesController extends Controller {
 				style: "warning"
 			}).then(() => {
 				api
-					.delete("tables", document.querySelector<HTMLInputElement>("#code").value)
+					.delete("tables", (<HTMLInputElement>document.getElementById("#code")).value)
 					.then(({ message }) => {
 						toaster(message, "success");
 						this.getTables();
