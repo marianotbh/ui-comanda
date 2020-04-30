@@ -17,7 +17,7 @@
 		"@types/jquery.blockui": "0.0.28",
 		"block-ui": "^2.70.1",
 		"bootstrap": "^4.4.0",
-		"jquery": "^3.4.1",
+		"jquery": "^3.5.0",
 		"jwt-decode": "^2.2.0",
 		"moment": "^2.24.0",
 		"popper.js": "^1.16.1",
